@@ -22,7 +22,6 @@ export default function LatestScreen() {
       setLoading(false);
     }
   };
-
   return (
     <View style={styles.container}>
       {loading ? (

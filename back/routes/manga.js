@@ -5,6 +5,7 @@ const router = express.Router();
 // Search mangas via Mangadex API
 router.get('/search', async (req, res) => {
   const { q } = req.query;
+  console.log(q);
   if (!q) return res.status(400).json({ message: 'Query required' });
   try {
     const resp = await axios.get('https://api.mangadex.org/manga', {
