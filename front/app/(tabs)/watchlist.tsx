@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, FlatList, Button } from 'react-native';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function WatchlistScreen() {
   const [token, setToken] = useState<string | null>(null);

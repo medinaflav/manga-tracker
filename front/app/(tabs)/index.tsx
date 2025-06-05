@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput, Button, FlatList, View, Text } from 'react-native';
 import axios from 'axios';
+import { useState } from 'react';
+import { Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
