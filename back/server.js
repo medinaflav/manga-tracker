@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const mangaRoutes = require('./routes/manga');
+const comickRoutes = require('./routes/comick');
 const watchlistRoutes = require('./routes/watchlist');
 
 // Configuration des variables d'environnement
@@ -17,6 +18,7 @@ app.use(express.json());
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/manga', mangaRoutes);
+app.use('/api/comick', comickRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 
 // Routes de base
