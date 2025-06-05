@@ -29,4 +29,16 @@ router.get('/chapter/:id', async (req, res) => {
   }
 });
 
+// Get latest chapters from Mangadex
+router.get('/latest', async (req, res) => {
+  try {
+    const resp = await axios.get('https://api.mangadex.org/chapter', {
+      params: { limit: 20, 'order[readableAt]': 'desc' },
+    });
+    res.json(resp.data);
+  } catch {
+    res.status(500).json({ message: 'Failed to fetch latest chapters' });
+  }
+});
+
 module.exports = router;
