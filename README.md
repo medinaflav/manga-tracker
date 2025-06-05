@@ -53,6 +53,7 @@ Le backend utilise la variable `JWT_SECRET` pour signer les tokens. Vous pouvez 
 - `POST /api/auth/login` – connexion et récupération d'un token JWT
 - `GET /api/manga/search?q=titre` – rechercher des mangas via Mangadex
 - `GET /api/manga/chapter/:id` – récupérer les pages d'un chapitre
+- `GET /api/manga/latest` – dernières sorties depuis Mangadex
 - `POST /api/watchlist` – ajouter un manga à sa liste (token requis)
 - `GET /api/watchlist` – lister les mangas suivis
 - `POST /api/watchlist/progress` – marquer un chapitre comme lu
