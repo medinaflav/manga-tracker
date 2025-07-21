@@ -33,7 +33,7 @@ router.get('/chapter/:id', async (req, res) => {
 router.get('/latest', async (req, res) => {
   try {
     const resp = await axios.get('https://api.mangadex.org/chapter', {
-      params: { limit: 20, 'order[readableAt]': 'desc' },
+      params: { limit: 100, 'order[readableAt]': 'desc' },
     });
     res.json(resp.data);
   } catch {
