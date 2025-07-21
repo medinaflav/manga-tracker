@@ -5,6 +5,7 @@ import { Dimensions, FlatList, Image, RefreshControl, StyleSheet, Text, Touchabl
 
 // URL du site à scraper
 const MANGA_SITE_URL = 'https://mangamoins.shaeishu.co/';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Récupère l'URL de la couverture d'un manga depuis l'API MangaDex.
@@ -49,7 +50,6 @@ export default function LatestScreen() {
   const [chapters, setChapters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [scrapingStatus, setScrapingStatus] = useState('');
 
   /**
    * Récupère les couvertures pour une liste de chapitres en arrière-plan.
@@ -108,6 +108,16 @@ export default function LatestScreen() {
   useEffect(() => {
     load();
   }, []);
+
+  const scrapeBackend = async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/api/mangamoins/latest`);
+      return data;
+    } catch (err) {
+      console.log('Backend scrape failed:', err);
+      return [];
+    }
+  };
 
   /**
    * Tentative de scraping avec différents services proxy (version web-compatible)
@@ -307,39 +317,28 @@ export default function LatestScreen() {
 
   const load = async () => {
     setLoading(true);
-    setScrapingStatus('Début du scraping...');
 
     try {
-      console.log('Début du scraping de mangamoins.shaeishu.co...');
+      let chapters = await scrapeBackend();
 
-      // Tentative 1: Scraping direct
-      let chapters = await scrapeDirect();
-
-      // Tentative 2: Scraping avec proxy si échec
       if (chapters.length === 0) {
-        console.log('Tentative avec proxies...');
+        chapters = await scrapeDirect();
+      }
+
+      if (chapters.length === 0) {
         chapters = await scrapeWithProxy();
       }
 
       console.log('Chapitres trouvés:', chapters);
 
-      // Si toujours pas de données, utiliser des données d'exemple
-      if (chapters.length === 0) {
-        console.log('Aucun chapitre trouvé');
-        setScrapingStatus('Protection Cloudflare active');
-      }
-
-      console.log(`Chapitres trouvés: ${chapters.length}`);
       setChapters(chapters);
 
-      // Lancer la récupération des images en arrière-plan sans bloquer l'UI
       if (chapters.length > 0) {
         fetchChapterCovers(chapters);
       }
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
       setChapters([]);
-      setScrapingStatus('Erreur lors du scraping');
     } finally {
       setLoading(false);
     }
@@ -376,9 +375,7 @@ export default function LatestScreen() {
       
       {loading ? (
         <View style={styles.center}>
-          <Text>Scraping en cours...</Text>
-          <Text style={styles.loadingText}>{scrapingStatus}</Text>
-          <Text style={styles.loadingText}>Contournement des protections...</Text>
+          <Text>Chargement...</Text>
         </View>
       ) : (
         <FlatList

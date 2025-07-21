@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const mangaRoutes = require('./routes/manga');
 const comickRoutes = require('./routes/comick');
 const watchlistRoutes = require('./routes/watchlist');
+const mangamoinsRoutes = require('./routes/mangamoins');
 
 // Configuration des variables d'environnement
 dotenv.config();
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/manga', mangaRoutes);
 app.use('/api/comick', comickRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/mangamoins', mangamoinsRoutes);
 
 // Routes de base
 app.get('/', (req, res) => {
