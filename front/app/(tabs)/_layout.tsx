@@ -49,13 +49,6 @@ export default function TabLayout() {
           href: null, // Masque l'onglet de la navigation
         }}
       />
-      <Tabs.Screen
-        name="login"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-        }}
-      />
     </Tabs>
   );
 }

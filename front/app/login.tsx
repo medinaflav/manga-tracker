@@ -1,4 +1,6 @@
+import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -7,14 +9,17 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [token, setToken] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const { login: authLogin } = useAuth();
+  const router = useRouter();
 
-  const login = async () => {
+  const handleLogin = async () => {
     try {
       const { data } = await axios.post(`${API_URL}/api/auth/login`, { username, password });
-      setToken(data.token);
-      setMessage('Connecté');
+      // You would typically store the token securely, e.g., in AsyncStorage
+      console.log('Token:', data.token);
+      authLogin(); // This will set isAuthenticated to true and trigger navigation
+      router.replace('/(tabs)/latest'); // Redirection vers Nouveautés
     } catch {
       setMessage('Erreur de connexion');
     }
@@ -31,17 +36,13 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      {token ? (
-        <Text>Token obtenu: {token}</Text>
-      ) : (
-        <>
-          <TextInput style={styles.input} placeholder="Utilisateur" value={username} onChangeText={setUsername} />
-          <TextInput style={styles.input} placeholder="Mot de passe" secureTextEntry value={password} onChangeText={setPassword} />
-          <Button title="Connexion" onPress={login} />
-          <Button title="Inscription" onPress={register} />
-          <Text>{message}</Text>
-        </>
-      )}
+      <>
+        <TextInput style={styles.input} placeholder="Utilisateur" value={username} onChangeText={setUsername} />
+        <TextInput style={styles.input} placeholder="Mot de passe" secureTextEntry value={password} onChangeText={setPassword} />
+        <Button title="Connexion" onPress={handleLogin} />
+        <Button title="Inscription" onPress={register} />
+        <Text>{message}</Text>
+      </>
     </View>
   );
 }
