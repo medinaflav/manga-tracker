@@ -1,16 +1,13 @@
-const express = require('express');
-const axios = require('axios');
+const express = require("express");
 const router = express.Router();
+const { getLatestChapters } = require("../services/comickService");
 
-// Get latest chapters from Comick
-router.get('/latest', async (req, res) => {
+router.get("/latest", async (req, res) => {
   try {
-    const resp = await axios.get('https://comick.io/api/latest', {
-      params: { limit: 20 },
-    });
-    res.json(resp.data);
-  } catch (err) {
-    res.status(500).json({ message: 'Comick request failed' });
+    const chapters = await getLatestChapters();
+    res.json(chapters);
+  } catch {
+    res.status(500).json({ message: "Comick request failed" });
   }
 });
 

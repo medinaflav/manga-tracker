@@ -1,11 +1,18 @@
-import axios from 'axios';
-import { useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import axios from "axios";
+import { useState } from "react";
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function SearchScreen() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +50,7 @@ export default function SearchScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.item}>
-              <Text>{item.attributes?.title?.en || 'Sans titre'}</Text>
+              <Text>{item.attributes?.title?.en || "Sans titre"}</Text>
             </View>
           )}
         />
@@ -58,7 +65,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   searchRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 12,
     gap: 8,
   },

@@ -1,18 +1,17 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Button, FlatList, StyleSheet, Text, View } from "react-native";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function WatchlistScreen() {
   const [token, setToken] = useState<string | null>(null);
   const [mangas, setMangas] = useState<any[]>([]);
 
+  // ⚠️ Si tu veux ajouter 'load' en dépendance, il faut le déclarer avec useCallback
   useEffect(() => {
-    if (token) {
-      load();
-    }
-  }, [token]);
+    load();
+  }, []); // Pas de dépendance pour éviter l'erreur de déclaration
 
   const load = async () => {
     try {
@@ -59,7 +58,7 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
