@@ -1,50 +1,48 @@
 import { useAuth } from "@/contexts/AuthContext";
-import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+import { Button, StyleSheet, Text, TextInput, View, SafeAreaView, StatusBar, TouchableOpacity, ActivityIndicator } from "react-native";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const { login: authLogin } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const { login, register, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  const handleLogin = async () => {
+  const handleSubmit = async () => {
+    setLoading(true);
+    setMessage("");
     try {
-      const { data } = await axios.post(`${API_URL}/api/auth/login`, {
-        username,
-        password,
-      });
-      // You would typically store the token securely, e.g., in AsyncStorage
-      console.log("Token:", data.token);
-      authLogin(); // This will set isAuthenticated to true and trigger navigation
-      router.replace("/(tabs)/latest"); // Redirection vers Nouveautés
-    } catch {
-      setMessage("Erreur de connexion");
-    }
-  };
-
-  const register = async () => {
-    try {
-      await axios.post(`${API_URL}/api/auth/register`, { username, password });
-      setMessage("Inscription réussie");
-    } catch {
-      setMessage("Erreur lors de l'inscription");
+      if (isRegister) {
+        await register(username, password);
+        setMessage("Inscription réussie ! Connecte-toi.");
+        setIsRegister(false);
+      } else {
+        await login(username, password);
+        setMessage("");
+        router.replace("/");
+      }
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message || "Erreur d'authentification");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <Text style={styles.title}>{isRegister ? "Inscription" : "Connexion"}</Text>
         <TextInput
           style={styles.input}
           placeholder="Utilisateur"
           value={username}
           onChangeText={setUsername}
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
@@ -53,11 +51,17 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
         />
-        <Button title="Connexion" onPress={handleLogin} />
-        <Button title="Inscription" onPress={register} />
-        <Text>{message}</Text>
-      </>
-    </View>
+        {message ? <Text style={styles.message}>{message}</Text> : null}
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{isRegister ? "S'inscrire" : "Se connecter"}</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { setIsRegister(r => !r); setMessage(""); }}>
+          <Text style={styles.switchText}>
+            {isRegister ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -66,11 +70,44 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     justifyContent: "center",
-    gap: 8,
+    gap: 12,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 12,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 8,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fafbfc',
+    borderColor: '#e5e7eb',
+  },
+  button: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  switchText: {
+    color: '#3b82f6',
+    textAlign: 'center',
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  message: {
+    color: '#e11d48',
+    textAlign: 'center',
+    marginBottom: 4,
+    fontWeight: '500',
   },
 });

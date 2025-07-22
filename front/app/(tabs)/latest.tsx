@@ -10,6 +10,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 import { scrapeMangaMoinsLatest } from '../../hooks/useMangaMoinsScraper';
 
@@ -72,7 +74,6 @@ export default function LatestScreen() {
       const { data } = await axios.get(`${API_URL}/api/mangamoins/latest`);
       return data;
     } catch (err) {
-      console.log("Backend scrape failed:", err);
       return [];
     }
   };
@@ -81,11 +82,9 @@ export default function LatestScreen() {
 
   const load = async () => {
     setLoading(true);
-    console.log("Tentative de récupération via le backend...");
     try {
       let chapters = await scrapeBackend();
       if (!chapters || chapters.length === 0) {
-        console.log("Tentative de scraping direct côté front...");
         chapters = await scrapeMangaMoinsLatest();
       }
       setChapters(chapters);
@@ -109,7 +108,6 @@ export default function LatestScreen() {
   const openChapter = (item: any) => {
     // Extraire le code de scan de l'URL (ex: ?scan=OP1155 -> OP1155)
     const scanCode = item.link.split("scan=")[1];
-    console.log("Opening scan:", scanCode);
 
     // Naviguer vers le lecteur avec les paramètres
     router.push({
@@ -125,73 +123,76 @@ export default function LatestScreen() {
   const styles = getStyles();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Dernières sorties</Text>
-      {/* <Text style={styles.subtitle}>Source: mangamoins.shaeishu.co</Text> */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <Text style={styles.header}>Dernières sorties</Text>
+        {/* <Text style={styles.subtitle}>Source: mangamoins.shaeishu.co</Text> */}
 
-      {loading ? (
-        <View style={styles.center}>
-          <Text>Chargement...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={chapters}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          renderItem={({ item }) => {
-            // console.log('Rendering item:', item);
-            return (
-              <TouchableOpacity
-                style={styles.item}
-                activeOpacity={0.85}
-                onPress={() => openChapter(item)}
-              >
-                <View style={styles.row}>
-                  {/* Image de couverture (placeholder si vide) */}
-                  <View style={styles.coverContainer}>
-                    {item.image ? (
-                      <Image
-                        source={{ uri: item.image }}
-                        style={styles.coverImage}
-                      />
-                    ) : (
-                      <View style={styles.coverPlaceholder}>
-                        <Text style={styles.coverPlaceholderText}>IMG</Text>
-                      </View>
-                    )}
-                  </View>
-                  {/* Infos */}
-                  <View style={styles.infoContainer}>
-                    <View style={styles.headerRow}>
-                      <Text style={styles.mangaTitle}>{item.manga}</Text>
-                      <View style={styles.dateBadge}>
-                        <Text style={styles.dateBadgeText}>{item.date}</Text>
-                      </View>
+        {loading ? (
+          <View style={styles.center}>
+            <Text>Chargement...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={chapters}
+            keyExtractor={(item) => item.id}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            renderItem={({ item }) => {
+              // console.log('Rendering item:', item);
+              return (
+                <TouchableOpacity
+                  style={styles.item}
+                  activeOpacity={0.85}
+                  onPress={() => openChapter(item)}
+                >
+                  <View style={styles.row}>
+                    {/* Image de couverture (placeholder si vide) */}
+                    <View style={styles.coverContainer}>
+                      {item.image ? (
+                        <Image
+                          source={{ uri: item.image }}
+                          style={styles.coverImage}
+                        />
+                      ) : (
+                        <View style={styles.coverPlaceholder}>
+                          <Text style={styles.coverPlaceholderText}>IMG</Text>
+                        </View>
+                      )}
                     </View>
-                    <Text style={styles.author}>{item.author}</Text>
-                    <View style={styles.chapterInfoRow}>
-                      <Text style={styles.chapterNumber}>
-                        Chapitre {item.chapter}
-                      </Text>
-                      <Text style={styles.language}>{item.language}</Text>
+                    {/* Infos */}
+                    <View style={styles.infoContainer}>
+                      <View style={styles.headerRow}>
+                        <Text style={styles.mangaTitle}>{item.manga}</Text>
+                        <View style={styles.dateBadge}>
+                          <Text style={styles.dateBadgeText}>{item.date}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.author}>{item.author}</Text>
+                      <View style={styles.chapterInfoRow}>
+                        <Text style={styles.chapterNumber}>
+                          Chapitre {item.chapter}
+                        </Text>
+                        {/* <Text style={styles.language}>{item.language}</Text> */}
+                      </View>
+                      <Text style={styles.chapterTitle}>{item.subtitle}</Text>
                     </View>
-                    <Text style={styles.chapterTitle}>{item.subtitle}</Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-          ListEmptyComponent={
-            <View style={styles.center}>
-              <Text>Aucun chapitre trouvé</Text>
-              <Text style={styles.errorText}>Protection Cloudflare active</Text>
-            </View>
-          }
-        />
-      )}
-    </View>
+                </TouchableOpacity>
+              );
+            }}
+            ListEmptyComponent={
+              <View style={styles.center}>
+                <Text>Aucun chapitre trouvé</Text>
+                <Text style={styles.errorText}>Protection Cloudflare active</Text>
+              </View>
+            }
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 

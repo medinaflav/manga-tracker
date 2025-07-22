@@ -19,10 +19,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
-    "mongoose": "^7.0.3"
+    "mongoose": "^7.0.3",
+    "react-native-dropdown-picker": "^5.4.6",
+    "node-cron": "^3.0.3",
+    "expo-server-sdk": "^4.0.0"
   },
   "devDependencies": {
-    "eslint": "^9.31.0",
+    "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^16.6.2",

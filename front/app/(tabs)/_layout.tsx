@@ -26,6 +26,7 @@ export default function TabLayout() {
           default: {},
         }),
       }}
+      initialRouteName="index"
     >
       <Tabs.Screen
         name="index"
@@ -34,7 +35,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="magnifyingglass" color={color} />
           ),
-          href: null, // Masque l'onglet de la navigation
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -51,9 +52,17 @@ export default function TabLayout() {
         options={{
           title: "Mes mangas",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="book" color={color} />
+            <IconSymbol size={28} name="favorite" color={color} />
           ),
-          href: null, // Masque l'onglet de la navigation
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Compte",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.crop.circle" color={color} />
+          ),
         }}
       />
     </Tabs>

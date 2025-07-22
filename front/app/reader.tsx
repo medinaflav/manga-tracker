@@ -9,6 +9,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -31,7 +33,6 @@ export default function ReaderScreen() {
   }, [scanCode]); // scanCode dépendance ok
 
   const handleGoBack = () => {
-    console.log("Back button pressed. Can go back:", router.canGoBack());
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -125,124 +126,133 @@ export default function ReaderScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Téléchargement du scan...</Text>
-          <Text style={styles.scanInfo}>
-            {mangaTitle} - Chapitre {chapter}
-          </Text>
-          {progress && <Text style={styles.progressText}>{progress}</Text>}
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Téléchargement du scan...</Text>
+            <Text style={styles.scanInfo}>
+              {mangaTitle} - Chapitre {chapter}
+            </Text>
+            {progress && <Text style={styles.progressText}>{progress}</Text>}
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => loadScan(scanCode as string)}
-          >
-            <Text style={styles.retryButtonText}>Réessayer</Text>
-          </TouchableOpacity>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.container}>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => loadScan(scanCode as string)}
+            >
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-          <Text style={styles.backButtonText}>← Retour</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>
-          {mangaTitle} - Chapitre {chapter}
-        </Text>
-        <Text style={styles.pageInfo}>
-          {currentPage + 1} / {pages.length}
-        </Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Text style={styles.backButtonText}>← Retour</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>
+            {mangaTitle} - Chapitre {chapter}
+          </Text>
+          <Text style={styles.pageInfo}>
+            {currentPage + 1} / {pages.length}
+          </Text>
+        </View>
 
-      <View style={styles.readerContainer}>
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={(event) => {
-            const pageIndex = Math.round(
-              event.nativeEvent.contentOffset.x / width,
-            );
-            if (pageIndex !== currentPage) {
-              setCurrentPage(pageIndex);
-            }
-          }}
-          scrollEventThrottle={32} // Optimisé pour onScroll
-        >
-          {pages.map((page, index) => (
-            <View key={index} style={styles.pageContainer}>
-              <Image
-                source={{ uri: page }}
-                style={styles.pageImage}
-                resizeMode="contain"
-              />
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.navigation}>
-        <TouchableOpacity
-          style={[
-            styles.navButton,
-            currentPage === 0 && styles.navButtonDisabled,
-          ]}
-          onPress={goToPreviousPage}
-          disabled={currentPage === 0}
-        >
-          <Text style={styles.navButtonText}>Précédent</Text>
-        </TouchableOpacity>
-
-        <View style={styles.pageSelector}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {pages.map((_, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.pageDot,
-                  currentPage === index && styles.pageDotActive,
-                ]}
-                onPress={() => goToPage(index)}
-              >
-                <Text
-                  style={[
-                    styles.pageDotText,
-                    currentPage === index && styles.pageDotTextActive,
-                  ]}
-                >
-                  {index + 1}
-                </Text>
-              </TouchableOpacity>
+        <View style={styles.readerContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={(event) => {
+              const pageIndex = Math.round(
+                event.nativeEvent.contentOffset.x / width,
+              );
+              if (pageIndex !== currentPage) {
+                setCurrentPage(pageIndex);
+              }
+            }}
+            scrollEventThrottle={32} // Optimisé pour onScroll
+          >
+            {pages.map((page, index) => (
+              <View key={index} style={styles.pageContainer}>
+                <Image
+                  source={{ uri: page }}
+                  style={styles.pageImage}
+                  resizeMode="contain"
+                />
+              </View>
             ))}
           </ScrollView>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.navButton,
-            currentPage === pages.length - 1 && styles.navButtonDisabled,
-          ]}
-          onPress={goToNextPage}
-          disabled={currentPage === pages.length - 1}
-        >
-          <Text style={styles.navButtonText}>Suivant</Text>
-        </TouchableOpacity>
+        <View style={styles.navigation}>
+          <TouchableOpacity
+            style={[
+              styles.navButton,
+              currentPage === 0 && styles.navButtonDisabled,
+            ]}
+            onPress={goToPreviousPage}
+            disabled={currentPage === 0}
+          >
+            <Text style={styles.navButtonText}>Précédent</Text>
+          </TouchableOpacity>
+
+          <View style={styles.pageSelector}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {pages.map((_, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.pageDot,
+                    currentPage === index && styles.pageDotActive,
+                  ]}
+                  onPress={() => goToPage(index)}
+                >
+                  <Text
+                    style={[
+                      styles.pageDotText,
+                      currentPage === index && styles.pageDotTextActive,
+                    ]}
+                  >
+                    {index + 1}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.navButton,
+              currentPage === pages.length - 1 && styles.navButtonDisabled,
+            ]}
+            onPress={goToNextPage}
+            disabled={currentPage === pages.length - 1}
+          >
+            <Text style={styles.navButtonText}>Suivant</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -7,6 +7,7 @@ const {
   getMangaCoverUrl,
 } = require("../services/mangaService");
 const { getScanImages } = require('../services/readerService');
+const axios = require('axios');
 
 // Search mangas via Mangadex API
 router.get("/search", async (req, res) => {
@@ -66,6 +67,48 @@ router.get('/scan', async (req, res) => {
     res.json({ images });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch scan images' });
+  }
+});
+
+// Proxy MangaDex manga details by id
+router.get('/mangadex/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await axios.get(`https://api.mangadex.org/manga/${id}`, {
+      params: { includes: ['cover_art', 'author'] }
+    });
+    res.json(response.data);
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+// Proxy MangaDex last chapter number by manga id (max chapter number)
+router.get('/mangadex/:id/chapters', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (req.query.total) {
+      return res.json({ totalChapters: parseInt(req.query.total, 10) });
+    }
+    let offset = 0;
+    const limit = 500;
+    let hasMore = true;
+    let lastChapter = null;
+    while (hasMore) {
+      const response = await axios.get(`https://api.mangadex.org/manga/${id}/feed`, { params: { limit, offset } });
+      const chapters = (response.data.data || [])
+        .map((c) => parseFloat(c.attributes.chapter))
+        .filter((n) => !isNaN(n));
+      if (chapters.length > 0) {
+        const max = Math.max(...chapters);
+        if (lastChapter === null || max > lastChapter) lastChapter = max;
+      }
+      offset += limit;
+      hasMore = response.data.total > offset;
+    }
+    res.json({ totalChapters: lastChapter });
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
   }
 });
 

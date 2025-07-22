@@ -2,7 +2,7 @@ const axios = require("axios");
 
 async function searchMangas(q) {
   const resp = await axios.get("https://api.mangadex.org/manga", {
-    params: { title: q, limit: 10 },
+    params: { title: q, limit: 10, includes: ["cover_art"] },
   });
   return resp.data;
 }

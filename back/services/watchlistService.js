@@ -1,7 +1,18 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-const watchlists = {};
-const progress = {};
+// Connexion MongoDB Atlas (URI dans .env)
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+const watchlistSchema = new mongoose.Schema({
+  username: { type: String, required: true, index: true },
+  mangaId: { type: String, required: true },
+  title: { type: String, required: true },
+  lastRead: { type: String, default: null },
+}, { timestamps: true });
+
+watchlistSchema.index({ username: 1, mangaId: 1 }, { unique: true });
+const Watchlist = mongoose.model("Watchlist", watchlistSchema);
 
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -15,31 +26,57 @@ function auth(req, res, next) {
   }
 }
 
-function addToWatchlist(username, mangaId, title) {
-  watchlists[username] = watchlists[username] || [];
-  if (!watchlists[username].find((m) => m.mangaId === mangaId)) {
-    watchlists[username].push({ mangaId, title });
-  }
+async function addToWatchlist(username, mangaId, title, lastRead) {
+  await Watchlist.findOneAndUpdate(
+    { username, mangaId },
+    { $set: { title, lastRead: lastRead || null } },
+    { upsert: true, new: true }
+  );
 }
 
-function getWatchlist(username) {
-  return watchlists[username] || [];
+async function removeFromWatchlist(username, mangaId) {
+  await Watchlist.deleteOne({ username, mangaId });
+}
+
+async function updateLastRead(username, mangaId, lastRead) {
+  await Watchlist.findOneAndUpdate(
+    { username, mangaId },
+    { $set: { lastRead } },
+    { new: true }
+  );
+}
+
+async function updateLastChapterComick(username, mangaId, lastChapterComick) {
+  await Watchlist.findOneAndUpdate(
+    { username, mangaId },
+    { $set: { lastChapterComick } },
+    { new: true }
+  );
+}
+
+async function getWatchlist(username) {
+  return await Watchlist.find({ username });
 }
 
 function updateProgress(username, mangaId, chapterId, read) {
-  progress[username] = progress[username] || {};
-  progress[username][mangaId] = progress[username][mangaId] || {};
-  progress[username][mangaId][chapterId] = !!read;
+  // This function is no longer used as progress is stored per manga in watchlists
+  // Keeping it for now as it might be re-introduced or refactored later
+  // For now, it will just return an empty object as progress is not tracked here
+  return {};
 }
 
 function getProgress(username, mangaId) {
-  return progress[username]?.[mangaId] || {};
+  // This function is no longer used as progress is stored per manga in watchlists
+  // Keeping it for now as it might be re-introduced or refactored later
+  // For now, it will just return an empty object as progress is not tracked here
+  return {};
 }
 
 module.exports = {
   auth,
   addToWatchlist,
+  removeFromWatchlist,
+  updateLastRead,
   getWatchlist,
-  updateProgress,
-  getProgress,
+  updateLastChapterComick,
 };

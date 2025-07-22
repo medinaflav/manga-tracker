@@ -1,6 +1,25 @@
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
+
+const notifiedChapterSchema = new mongoose.Schema({
+  title: { type: String, required: true, unique: true },
+  date: { type: String },
+}, { timestamps: true });
+const NotifiedChapter = mongoose.models.NotifiedChapter || mongoose.model("NotifiedChapter", notifiedChapterSchema);
+
+async function isChapterNotified(title) {
+  return await NotifiedChapter.findOne({ title });
+}
+
+async function markChapterAsNotified(title, date) {
+  await NotifiedChapter.findOneAndUpdate(
+    { title },
+    { $set: { date } },
+    { upsert: true, new: true }
+  );
+}
 
 function parseMangaChapters(htmlContent) {
   const chapters = [];
@@ -98,4 +117,4 @@ async function getLatestChapters() {
   }
 }
 
-module.exports = { getLatestChapters };
+module.exports = { getLatestChapters, isChapterNotified, markChapterAsNotified };
