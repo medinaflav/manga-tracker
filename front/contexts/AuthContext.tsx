@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import { api } from "@/utils/api";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -38,12 +38,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  // Ajoute le token à toutes les requêtes axios
+  // Ajoute le token à toutes les requêtes API
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
-      delete axios.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -77,13 +77,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const login = async (username: string, password: string) => {
-    const { data } = await axios.post('http://localhost:3000/api/auth/login', { username, password });
+    const { data } = await api.post('/api/auth/login', { username, password });
     setToken(data.token);
     setUser(username);
     await AsyncStorage.setItem('token', data.token);
     const token = await registerForPushNotificationsAsync();
     if (token) {
-      await axios.post(`http://localhost:3000/api/auth/expoPushToken`, {
+      await api.post('/api/auth/expoPushToken', {
         username,
         expoPushToken: token,
       });
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (username: string, password: string) => {
-    await axios.post('http://localhost:3000/api/auth/register', { username, password });
+    await api.post('/api/auth/register', { username, password });
   };
 
   const logout = async () => {
