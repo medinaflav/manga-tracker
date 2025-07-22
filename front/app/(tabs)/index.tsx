@@ -1,4 +1,5 @@
 import axios from "axios";
+import { api } from '@/utils/api';
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -16,7 +17,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 const POPULAR_TITLES = [
   "One Piece",
@@ -120,7 +120,7 @@ export default function SearchScreen() {
   useEffect(() => {
     if (!query) return;
     setLoading(true);
-    axios.get(`${API_URL}/api/manga/search`, { params: { q: query } })
+    api.get('/api/manga/search', { params: { q: query } })
       .then(({ data }) => {
         // Ajoute coverUrl à chaque résultat
         const mapped = (data.data || []).map((manga: any) => ({

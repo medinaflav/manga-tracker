@@ -2,10 +2,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, SafeAreaView, StatusBar } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
-import axios from "axios";
+import axios from 'axios';
+import { api } from '@/utils/api';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export const options = { headerShown: false };
 
@@ -23,7 +23,7 @@ export default function MangaDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
-    axios.get(`${API_URL}/api/watchlist`)
+    api.get('/api/watchlist')
       .then(({ data }) => {
         if (Array.isArray(data)) {
           const found = data.find((m: any) => m.mangaId === id || m.id === id);
@@ -148,10 +148,10 @@ export default function MangaDetailScreen() {
               onPress={async () => {
                 try {
                   if (!isFollowed) {
-                    await axios.post(`${API_URL}/api/watchlist`, { mangaId: id, title: manga?.title, lastRead });
+                    await api.post('/api/watchlist', { mangaId: id, title: manga?.title, lastRead });
                     setIsFollowed(true);
                   } else {
-                    await axios.delete(`${API_URL}/api/watchlist`, { data: { mangaId: id } });
+                    await api.delete('/api/watchlist', { data: { mangaId: id } });
                     setIsFollowed(false);
                   }
                 } catch {}
@@ -186,7 +186,7 @@ export default function MangaDetailScreen() {
               onPress={async () => {
                 if (selectedChapter) {
                   try {
-                    await axios.post(`${API_URL}/api/watchlist/lastread`, { mangaId: id, lastRead: selectedChapter });
+                    await api.post('/api/watchlist/lastread', { mangaId: id, lastRead: selectedChapter });
                     setLastRead(selectedChapter);
                   } catch {}
                 }
