@@ -36,6 +36,16 @@ npx expo start
 
 Expo vous proposera ensuite d'ouvrir l'application sur un appareil ou un émulateur.
 
+> **Astuce** : si vous testez l'application sur un appareil physique, pensez à
+> définir la variable d'environnement `EXPO_PUBLIC_API_URL` afin que le front-end
+> puisse contacter votre serveur local. Par exemple :
+>
+> ```bash
+> EXPO_PUBLIC_API_URL="http://192.168.1.10:3000" npx expo start
+> ```
+>
+> Remplacez l'adresse IP par celle de votre machine hébergeant le backend.
+
 ## Structure du dépôt
 
 - `back/` – Serveur Express
