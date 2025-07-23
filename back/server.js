@@ -13,11 +13,13 @@ const mangaRoutes = require("./routes/manga");
 const comickRoutes = require("./routes/comick");
 const watchlistRoutes = require("./routes/watchlist");
 const mangamoinsRoutes = require("./routes/mangamoins");
+const readerRoutes = require("./routes/reader");
 const helmet = require("helmet");
 const cron = require("node-cron");
 const { getLatestChapters, isChapterNotified, markChapterAsNotified } = require("./services/mangamoinsService");
 const { default: Expo } = require("expo-server-sdk");
 const User = require("./services/authService").User || require("mongoose").model("User");
+const path = require('path');
 
 const expo = new Expo();
 
@@ -29,6 +31,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
+app.use('/downloads', express.static(path.join(__dirname, '../downloads')));
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -36,9 +39,10 @@ app.use("/api/manga", mangaRoutes);
 app.use("/api/comick", comickRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/mangamoins", mangamoinsRoutes);
+app.use("/api/reader", readerRoutes);
 
-// Tâche cron : toutes les 15 minutes
-cron.schedule("*/15 * * * *", async () => {
+// Tâche cron : tous les jours à 15h
+cron.schedule("0 15 * * *", async () => {
   console.log("[CRON] Scan Manga Moins...");
   try {
     const chapters = await getLatestChapters();

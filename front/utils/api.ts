@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /** Base URL for backend API */
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+export const API_URL = "http://localhost:3000";
 
 /** Preconfigured axios instance for the backend API */
 export const api = axios.create({

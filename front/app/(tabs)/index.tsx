@@ -21,10 +21,10 @@ import { useRouter } from "expo-router";
 const POPULAR_TITLES = [
   "One Piece",
   "Kagurabachi",
-  "Boruto: Two Blue Vortex",
+  "Boruto - Two Blue Vortex",
   "Jujutsu Kaisen",
   "Solo Leveling",
-  "Spy x Family",
+  "SPY×FAMILY",
 ];
 
 async function fetchMangaDexInfo(title: string) {
@@ -40,6 +40,8 @@ async function fetchMangaDexInfo(title: string) {
       }
     );
     const mangas = res.data.data;
+    console.log("title: ", title);
+    console.log("mangas: ", mangas);
     if (!mangas || mangas.length === 0) return null;
 
     // Cherche un titre qui correspond exactement (insensible à la casse)
@@ -87,6 +89,13 @@ function getNumColumns() {
   if (width > 450) return 4;
   if (width > 389) return 3;
   return 2;
+}
+
+// Supprime la fonction fillGridData et son utilisation
+
+// Ajoute une fonction utilitaire pour générer des blocs gris pour le skeleton
+function getSkeletonData(num: number) {
+  return Array.from({ length: num }, (_, i) => ({ id: `skeleton-${i}`, skeleton: true }));
 }
 
 export const options = { headerShown: false };
@@ -141,7 +150,7 @@ export default function SearchScreen() {
         <View style={styles.searchRow}>
           <TextInput
             style={styles.input}
-            placeholder="Titre du manga"
+            placeholder="Recherche"
             placeholderTextColor="#888"
             value={query}
             onChangeText={setQuery}
@@ -149,24 +158,46 @@ export default function SearchScreen() {
         </View>
         {query ? (
           loading ? (
-            <Text>Recherche...</Text>
+            <FlatList
+              data={getSkeletonData(numColumns * 2)}
+              keyExtractor={(item) => item.id}
+              numColumns={numColumns}
+              key={`skeleton-grid-${numColumns}`}
+              contentContainerStyle={[styles.popularGrid, { paddingBottom: 32, marginTop: 8 }]}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              renderItem={({ index }) => {
+                const isLastInRow = (index + 1) % numColumns === 0;
+                return (
+                  <View style={[styles.popularItem, isLastInRow && { marginRight: 0 }, { flex: 1, alignItems: 'center' }]}>
+                    <View style={[styles.popularCoverPlaceholder, { marginBottom: 0 }]} />
+                    <View style={styles.skeletonTitle} />
+                  </View>
+                );
+              }}
+            />
           ) : (
             <FlatList
               data={results}
               keyExtractor={(item) => item.id}
               numColumns={numColumns}
               key={`results-grid-${numColumns}`}
-              contentContainerStyle={styles.popularGrid}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.popularItem} activeOpacity={0.85} onPress={() => router.push(`/manga/${item.id}` as any)}>
-                  {item.coverUrl ? (
-                    <Image source={{ uri: item.coverUrl }} style={styles.popularCover} />
-                  ) : (
-                    <View style={styles.popularCoverPlaceholder}><Text>IMG</Text></View>
-                  )}
-                  <Text style={styles.popularTitle} numberOfLines={1}>{item.title}</Text>
-                </TouchableOpacity>
-              )}
+              contentContainerStyle={[styles.popularGrid, { paddingBottom: 32, marginTop: 8 }]}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              renderItem={({ item, index }) => {
+                const isLastInRow = (index + 1) % numColumns === 0;
+                return (
+                  <TouchableOpacity style={[styles.popularItem, isLastInRow && { marginRight: 0 }]} activeOpacity={0.85} onPress={() => router.push(`/manga/${item.id}` as any)}>
+                    <View style={styles.popularCoverShadow}>
+                      {item.coverUrl ? (
+                        <Image source={{ uri: item.coverUrl }} style={styles.popularCover} />
+                      ) : (
+                        <View style={styles.popularCoverPlaceholder}><Text>IMG</Text></View>
+                      )}
+                    </View>
+                    <Text style={styles.popularTitle} numberOfLines={1}>{item.title}</Text>
+                  </TouchableOpacity>
+                );
+              }}
               ListEmptyComponent={!loading ? <Text style={{ textAlign: 'center', marginTop: 32 }}>Aucun résultat</Text> : null}
             />
           )
@@ -174,7 +205,24 @@ export default function SearchScreen() {
           <>
             <Text style={styles.sectionTitle}>Les plus recherchés</Text>
             {loadingPopular ? (
-              <Text>Chargement...</Text>
+              <FlatList
+                data={getSkeletonData(numColumns * 2)}
+                keyExtractor={(item) => item.id}
+                numColumns={numColumns}
+                key={`skeleton-popular-grid-${numColumns}`}
+                scrollEnabled={false}
+                contentContainerStyle={[styles.popularGrid, { paddingBottom: 32, marginTop: 8 }]}
+                columnWrapperStyle={{ justifyContent: 'flex-start' }}
+                renderItem={({ index }) => {
+                  const isLastInRow = (index + 1) % numColumns === 0;
+                  return (
+                    <View style={[styles.popularItem, isLastInRow && { marginRight: 0 }, { flex: 1, alignItems: 'center' }]}>
+                      <View style={styles.popularCoverPlaceholder} />
+                      <View style={styles.skeletonTitle} />
+                    </View>
+                  );
+                }}
+              />
             ) : (
               <FlatList
                 data={popular}
@@ -182,17 +230,23 @@ export default function SearchScreen() {
                 numColumns={numColumns}
                 key={`popular-grid-${numColumns}`}
                 scrollEnabled={false}
-                contentContainerStyle={styles.popularGrid}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.popularItem} activeOpacity={0.85} onPress={() => router.push(`/manga/${item.id}` as any)}>
-                    {item.coverUrl ? (
-                      <Image source={{ uri: item.coverUrl }} style={styles.popularCover} />
-                    ) : (
-                      <View style={styles.popularCoverPlaceholder}><Text>IMG</Text></View>
-                    )}
-                    <Text style={styles.popularTitle} numberOfLines={1}>{item.title}</Text>
-                  </TouchableOpacity>
-                )}
+                contentContainerStyle={[styles.popularGrid, { paddingBottom: 32, marginTop: 8 }]}
+                columnWrapperStyle={{ justifyContent: 'flex-start' }}
+                renderItem={({ item, index }) => {
+                  const isLastInRow = (index + 1) % numColumns === 0;
+                  return (
+                    <TouchableOpacity style={[styles.popularItem, isLastInRow && { marginRight: 0 }]} activeOpacity={0.85} onPress={() => router.push(`/manga/${item.id}` as any)}>
+                      <View style={styles.popularCoverShadow}>
+                        {item.coverUrl ? (
+                          <Image source={{ uri: item.coverUrl }} style={styles.popularCover} />
+                        ) : (
+                          <View style={styles.popularCoverPlaceholder}><Text>IMG</Text></View>
+                        )}
+                      </View>
+                      <Text style={styles.popularTitle} numberOfLines={1}>{item.title}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
               />
             )}
           </>
@@ -209,85 +263,109 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff'
+    paddingVertical: 20,
+    backgroundColor: '#fff',
+    paddingBottom: 32,
   },
   searchRow: {
     flexDirection: "row",
     marginBottom: 12,
-    gap: 8,
+    // gap: 8,
     marginTop: 8,
-    marginHorizontal: 2,
+    // marginHorizontal: 2,
   },
   input: {
     flex: 1,
     borderWidth: 1,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: '#fafbfc',
     fontSize: 16,
-    shadowColor: '#000',
+    shadowColor: '#222',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
-    shadowRadius: 2,
+    shadowRadius: 3,
     elevation: 1,
     borderColor: '#e5e7eb',
+    marginHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginBottom: 16,
     marginTop: 18,
-    textAlign: 'center',
+    // marginLeft: 18,
+    textAlign: 'left',
     letterSpacing: 0.1,
+    paddingHorizontal: 20,
   },
   popularGrid: {
-    marginBottom: 24,
-    gap: 12,
-    paddingBottom: 12,
+    // marginBottom: 24,
+    // gap: 10,
+    // paddingBottom: 12,
+    marginTop: 8,
+    paddingHorizontal: 20,
   },
   popularItem: {
     flex: 1,
     alignItems: "center",
     marginBottom: 18,
-    minWidth: 110,
-    maxWidth: 160,
-    paddingHorizontal: 4,
+    maxWidth: 110,
+    marginRight: 16,
+  },
+  popularCoverShadow: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    
+    elevation: 3,
+    borderRadius: 5,
+    marginBottom: 8,
   },
   popularCover: {
     width: 110,
     height: 155,
-    borderRadius: 16,
-    marginBottom: 8,
+    borderRadius: 5,
     backgroundColor: "#eee",
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 2,
   },
   popularCoverPlaceholder: {
     width: 110,
     height: 155,
-    borderRadius: 16,
+    borderRadius: 7,
     marginBottom: 8,
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: '#000',
+    shadowColor: '#222',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
-    shadowRadius: 6,
+    shadowRadius: 4,
     elevation: 2,
   },
   popularTitle: {
     fontSize: 15,
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 2,
+    marginTop: 6,
     letterSpacing: 0.1,
   },
   item: {
     paddingVertical: 8,
+  },
+  skeletonTitle: {
+    width: 110,
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: '#eee',
+    marginTop: 5,
+    shadowColor: '#222',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

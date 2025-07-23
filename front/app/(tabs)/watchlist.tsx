@@ -102,7 +102,23 @@ export default function WatchlistScreen() {
       <View style={styles.container}>
         <Text style={styles.header}>Mes mangas</Text>
         {loading ? (
-          <View style={styles.center}><Text>Chargement...</Text></View>
+          <FlatList
+            data={Array.from({ length: 6 }, (_, i) => ({ id: `skeleton-${i}` }))}
+            keyExtractor={(item) => item.id}
+            renderItem={() => (
+              <View style={styles.item}>
+                <View style={styles.row}>
+                  <View style={styles.skeletonCover} />
+                  <View style={styles.skeletonInfo}>
+                    <View style={styles.skeletonTitle} />
+                    <View style={styles.skeletonAuthor} />
+                    <View style={styles.skeletonProgressBar} />
+                  </View>
+                </View>
+              </View>
+            )}
+            ListEmptyComponent={null}
+          />
         ) : (
           <FlatList
             data={detailed}
@@ -164,7 +180,7 @@ export default function WatchlistScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    // padding: 16,
   },
   header: {
     fontSize: 22,
@@ -172,6 +188,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 15,
     marginTop: 8,
+    marginLeft: 16,
   },
   listContent: {
     paddingBottom: 24,
@@ -180,13 +197,17 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     marginBottom: 16,
     borderRadius: 14,
-    elevation: 3,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    elevation: 3,
     padding: 0,
-    overflow: "hidden",
+    marginHorizontal: 16,
+    // overflow: "hidden",
   },
   row: {
     flexDirection: "row",
@@ -294,5 +315,37 @@ const styles = StyleSheet.create({
     color: '#222',
     minWidth: 48,
     textAlign: 'right',
+  },
+  skeletonCover: {
+    width: 56,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#e0e0e0',
+    marginRight: 16,
+  },
+  skeletonInfo: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  skeletonTitle: {
+    width: '70%',
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: '#eee',
+    marginBottom: 8,
+  },
+  skeletonAuthor: {
+    width: '40%',
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: '#eee',
+    marginBottom: 8,
+  },
+  skeletonProgressBar: {
+    width: '60%',
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#eee',
   },
 });

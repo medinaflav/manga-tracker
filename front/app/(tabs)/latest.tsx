@@ -219,7 +219,7 @@ const getStyles = () =>
       marginBottom: 16,
       borderRadius: 14,
       elevation: 3,
-      shadowColor: "#000",
+      shadowColor: "#222",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 8,

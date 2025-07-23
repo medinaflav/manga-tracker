@@ -12,12 +12,13 @@ import {
   View,
   SafeAreaView,
   StatusBar,
+  Linking,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 export default function ReaderScreen() {
-  const { scanCode, mangaTitle, chapter } = useLocalSearchParams();
+  const { slug, mangaTitle, chapter } = useLocalSearchParams();
   const router = useRouter();
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -28,10 +29,28 @@ export default function ReaderScreen() {
 
   // ⚠️ Si tu veux ajouter 'loadScan' en dépendance, il faut le déclarer avec useCallback
   useEffect(() => {
-    if (scanCode) {
-      loadScan(scanCode as string);
+    if (slug && chapter) {
+      setLoading(true);
+      setError("");
+      setProgress("Chargement des images...");
+      fetch(`${API_URL}/api/reader/${encodeURIComponent(slug as string)}/${chapter as string}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('API /api/reader response:', data);
+          if (data.images && data.images.length > 0) {
+            setPages(data.images);
+            setProgress("");
+          } else if (data.url) {
+            setProgress("");
+            Linking.openURL(data.url);
+          } else {
+            setError("Aucune image trouvée");
+          }
+        })
+        .catch(() => setError("Erreur lors du chargement des images"))
+        .finally(() => setLoading(false));
     }
-  }, [scanCode]); // scanCode dépendance ok
+  }, [slug, chapter]);
 
   const handleGoBack = () => {
     if (router.canGoBack()) {
@@ -126,8 +145,8 @@ export default function ReaderScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#222' }}>
+        <StatusBar barStyle="light-content" backgroundColor="#222" />
         <View style={styles.container}>
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Téléchargement du scan...</Text>
@@ -143,14 +162,14 @@ export default function ReaderScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#222' }}>
+        <StatusBar barStyle="light-content" backgroundColor="#222" />
         <View style={styles.container}>
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
-              onPress={() => loadScan(scanCode as string)}
+              onPress={() => loadScan(slug as string)}
             >
               <Text style={styles.retryButtonText}>Réessayer</Text>
             </TouchableOpacity>
@@ -161,8 +180,8 @@ export default function ReaderScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#222' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#222" />
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -192,15 +211,19 @@ export default function ReaderScreen() {
             }}
             scrollEventThrottle={32} // Optimisé pour onScroll
           >
-            {pages.map((page, index) => (
-              <View key={index} style={styles.pageContainer}>
-                <Image
-                  source={{ uri: page }}
-                  style={styles.pageImage}
-                  resizeMode="contain"
-                />
-              </View>
-            ))}
+            {pages.filter(page => page && typeof page === 'string' && !/^[. ]+$/.test(page)).map((page, index) => {
+              const imageUrl = page.startsWith('/downloads') ? `${API_URL}${page}` : page;
+              console.log('Image URL:', imageUrl);
+              return (
+                <View key={index} style={styles.pageContainer}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.pageImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -218,25 +241,27 @@ export default function ReaderScreen() {
 
           <View style={styles.pageSelector}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {pages.map((_, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.pageDot,
-                    currentPage === index && styles.pageDotActive,
-                  ]}
-                  onPress={() => goToPage(index)}
-                >
-                  <Text
+              {pages.map((_, index) => {
+                return (
+                  <TouchableOpacity
+                    key={index}
                     style={[
-                      styles.pageDotText,
-                      currentPage === index && styles.pageDotTextActive,
+                      styles.pageDot,
+                      currentPage === index && styles.pageDotActive,
                     ]}
+                    onPress={() => goToPage(index)}
                   >
-                    {index + 1}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.pageDotText,
+                        currentPage === index && styles.pageDotTextActive,
+                      ]}
+                    >
+                      {index + 1}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
 
@@ -259,7 +284,7 @@ export default function ReaderScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#222",
   },
   header: {
     flexDirection: "row",
@@ -344,7 +369,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   pageDotTextActive: {
-    color: "#000",
+    color: "#222",
   },
   loadingContainer: {
     flex: 1,
