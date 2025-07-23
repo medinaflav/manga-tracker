@@ -194,7 +194,6 @@ export default function ReaderScreen() {
             {currentPage + 1} / {pages.length}
           </Text>
         </View>
-
         <View style={styles.readerContainer}>
           <ScrollView
             ref={scrollViewRef}
@@ -209,11 +208,10 @@ export default function ReaderScreen() {
                 setCurrentPage(pageIndex);
               }
             }}
-            scrollEventThrottle={32} // Optimisé pour onScroll
+            scrollEventThrottle={32}
           >
             {pages.filter(page => page && typeof page === 'string' && !/^[. ]+$/.test(page)).map((page, index) => {
               const imageUrl = page.startsWith('/downloads') ? `${API_URL}${page}` : page;
-              console.log('Image URL:', imageUrl);
               return (
                 <View key={index} style={styles.pageContainer}>
                   <Image
@@ -226,7 +224,6 @@ export default function ReaderScreen() {
             })}
           </ScrollView>
         </View>
-
         <View style={styles.navigation}>
           <TouchableOpacity
             style={[
@@ -238,7 +235,6 @@ export default function ReaderScreen() {
           >
             <Text style={styles.navButtonText}>Précédent</Text>
           </TouchableOpacity>
-
           <View style={styles.pageSelector}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {pages.map((_, index) => {
@@ -264,7 +260,6 @@ export default function ReaderScreen() {
               })}
             </ScrollView>
           </View>
-
           <TouchableOpacity
             style={[
               styles.navButton,
