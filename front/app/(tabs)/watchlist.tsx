@@ -12,7 +12,7 @@ import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useChapterDetection } from '@/hooks/useChapterDetection';
-import { useProgressColors } from '@/hooks/useProgressColors';
+import { getProgressColors, getProgressWidth } from '@/utils/progressColors';
 
 
 // Récupère les infos détaillées d'un manga depuis MangaDex
@@ -418,34 +418,21 @@ export default function WatchlistScreen() {
 
                 const lastRead = item.lastRead ? parseFloat(item.lastRead) : 0;
                 
-                // Calculer la progression directement (pas de hook dans la boucle)
+                // Calculer la progression
                 let progressWidth = 0;
-                let progressColors = { progressColor: '#6b7280', badgeColor: '#6b7280', textColor: '#6b7280' };
+                let progressColors = getProgressColors(0);
                 let progressText = '0 / 0';
-                
+
                 if (item.lastChapterComick && item.lastChapterComick > 0) {
                   const progressPercent = lastRead / item.lastChapterComick;
-                  
+                  progressColors = getProgressColors(progressPercent);
+                  progressWidth = getProgressWidth(progressPercent);
+
                   if (lastRead === 0) {
-                    // Pas commencé : barre vide
-                    progressWidth = 0;
-                    progressColors = { progressColor: '#ef4444', badgeColor: '#ef4444', textColor: '#ef4444' };
                     progressText = `0 / ${item.lastChapterComick}`;
-                  } else if (progressPercent >= 1.0) {
-                    progressWidth = 100;
-                    progressColors = { progressColor: '#22c55e', badgeColor: '#22c55e', textColor: '#22c55e' };
-                    progressText = `${lastRead} / ${item.lastChapterComick}`;
-                  } else if (progressPercent >= 0.7) {
-                    progressWidth = Math.max(60, progressPercent * 90);
-                    progressColors = { progressColor: '#22c55e', badgeColor: '#22c55e', textColor: '#22c55e' };
-                    progressText = `${lastRead} / ${item.lastChapterComick}`;
-                  } else if (progressPercent >= 0.4) {
-                    progressWidth = Math.max(30, progressPercent * 80);
-                    progressColors = { progressColor: '#fb923c', badgeColor: '#fb923c', textColor: '#fb923c' };
+                  } else if (lastRead >= item.lastChapterComick) {
                     progressText = `${lastRead} / ${item.lastChapterComick}`;
                   } else {
-                    progressWidth = Math.max(10, progressPercent * 100);
-                    progressColors = { progressColor: '#ef4444', badgeColor: '#ef4444', textColor: '#ef4444' };
                     progressText = `${lastRead} / ${item.lastChapterComick}`;
                   }
                 }
@@ -497,30 +484,14 @@ export default function WatchlistScreen() {
                               {/* Badge avec le nombre de chapitres restants */}
                               {lastRead > 0 && (
                                 <View style={styles.chaptersRemainingContainer}>
-                                                                      <View style={(() => {
-                                      const last = lastRead;
-                                      const total = item.lastChapterComick;
-                                      const progressPercent = last / total;
-
-                                    let badgeColor = colors.primary;
-                                    if (progressPercent >= 1.0) {
-                                      badgeColor = '#22c55e'; // Vert quand à jour
-                                    } else if (progressPercent >= 0.7) {
-                                      badgeColor = '#22c55e'; // Vert comme la barre
-                                    } else if (progressPercent >= 0.4) {
-                                      badgeColor = '#fb923c'; // Orange clair comme la barre
-                                    } else {
-                                      badgeColor = '#ef4444'; // Rouge comme la barre
-                                    }
-
-                                    return {
-                                      backgroundColor: badgeColor,
+                                  <View
+                                    style={{
+                                      backgroundColor: progressColors.badgeColor,
                                       paddingHorizontal: 8,
                                       paddingVertical: 4,
                                       borderRadius: 12,
                                       alignSelf: 'flex-start'
-                                    };
-                                  })()}>
+                                    }}>
                                     <Text style={{
                                       color: '#fff',
                                       fontSize: 12,

@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const {
-  auth,
   addToWatchlist,
   removeFromWatchlist,
   updateLastRead,
   getWatchlist,
   updateLastChapterComick,
 } = require("../services/watchlistService");
+const auth = require('../middleware/auth');
 const axios = require('axios');
 
 // Add or update manga in watchlist
