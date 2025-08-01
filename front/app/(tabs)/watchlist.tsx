@@ -1,114 +1,34 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, Image } from "react-native";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "expo-router";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useFocusEffect } from "expo-router";
-import React from "react";
+import { useState, useCallback } from 'react';
+import { api } from '@/utils/api';
+import { getLastChapter } from '@/utils/comick';
+import { getMangaDetailsById } from '@/utils/mangadex';
+import { FlatList, StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, Image } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 // Récupère les infos détaillées d'un manga depuis MangaDex
-async function fetchMangaDexInfoById(mangaId: string) {
-  try {
-    const res = await axios.get(`${API_URL}/api/manga/mangadex/${mangaId}`);
-    const manga = res.data.data;
-    const coverRel = manga?.relationships?.find((r: any) => r.type === "cover_art");
-    const coverUrl = coverRel && coverRel.attributes && coverRel.attributes.fileName
-      ? `https://uploads.mangadex.org/covers/${mangaId}/${coverRel.attributes.fileName}.256.jpg`
-      : null;
-    const authorRel = manga?.relationships?.find((r: any) => r.type === "author");
-    const author = authorRel && authorRel.attributes && authorRel.attributes.name
-      ? authorRel.attributes.name
-      : "Auteur inconnu";
-    // Récupère le nombre total de chapitres via backend
-    let totalChapters = null;
-    try {
-      const chaptersRes = await axios.get(`${API_URL}/api/manga/mangadex/${mangaId}/chapters`);
-      totalChapters = chaptersRes.data.totalChapters;
-    } catch (e) {
-      console.error('Erreur récupération totalChapters:', e);
-    }
-    return {
-      id: mangaId,
-      title: manga.attributes?.title?.en || Object.values(manga.attributes?.title || {})[0] || "Sans titre",
-      author,
-      coverUrl,
-      totalChapters,
-    };
-  } catch (e) {
-    console.error("Erreur MangaDex:", e);
-    return null;
-  }
-}
-
-// Ajoute cette fonction utilitaire pour récupérer le dernier chapitre Comick
-async function fetchComickLastChapterByTitle(title: string): Promise<string | null> {
-  try {
-    const res = await axios.get(`https://api.comick.io/v1.0/search`, {
-      params: { q: title, limit: 1 }
-    });
-    const manga = res.data?.[0];
-    return manga?.last_chapter || null;
-  } catch (e) {
-    console.error('[DEBUG] Erreur recherche last_chapter Comick:', e);
-    return null;
-  }
-}
-
 export default function WatchlistScreen() {
-  const { isAuthenticated, token, authLoaded } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [mangas, setMangas] = useState<any[]>([]);
+  const ready = useAuthRedirect();
   const [detailed, setDetailed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!authLoaded) return;
-    if (!isAuthenticated) {
-      router.replace("/login");
-      return;
-    }
-    load();
-  }, [isAuthenticated, authLoaded]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (isAuthenticated && authLoaded) {
-        load();
-      }
-    }, [isAuthenticated, authLoaded])
-  );
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_URL}/api/watchlist`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMangas(data);
-      // Récupère les infos détaillées pour chaque manga
+      const { data } = await api.get('/api/watchlist');
       const details = await Promise.all(
         data.map(async (m: any) => {
-          const info = await fetchMangaDexInfoById(m.mangaId);
-          // Récupère le numéro du dernier chapitre Comick côté frontend
+          const info = await getMangaDetailsById(m.mangaId);
           let lastChapterComick = null;
           try {
-            const res = await axios.get('https://api.comick.io/v1.0/search', {
-              params: { q: info?.title || m.title, limit: 1 }
-            });
-            lastChapterComick = res.data?.[0]?.last_chapter || null;
-            
-            // PATCH vers le backend pour stocker la valeur
+            lastChapterComick = await getLastChapter(info?.title || m.title);
             if (lastChapterComick && m.mangaId) {
               try {
-                await axios.patch(`${API_URL}/api/watchlist/last-chapter`, {
-                  mangaId: m.mangaId,
-                  lastChapterComick
-                }, {
-                  headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.patch('/api/watchlist/last-chapter', { mangaId: m.mangaId, lastChapterComick });
               } catch (e) {
                 console.error('[DEBUG] PATCH lastChapterComick failed:', e);
               }
@@ -116,23 +36,26 @@ export default function WatchlistScreen() {
           } catch (e) {
             console.error('[DEBUG] Comick search failed:', e);
           }
-          return {
-            ...m,
-            ...info,
-            lastChapterComick,
-          };
+          return { ...m, ...info, lastChapterComick };
         })
       );
       setDetailed(details);
     } catch {
-      setMangas([]);
       setDetailed([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  if (!authLoaded) return null;
+  useFocusEffect(
+    useCallback(() => {
+      if (ready && isAuthenticated) {
+        load();
+      }
+    }, [isAuthenticated, ready, load])
+  );
+
+  if (!ready) return null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -198,29 +121,6 @@ export default function WatchlistScreen() {
   );
 }
 
-export function AccountScreen() {
-  const { user, logout, isAuthenticated, authLoaded } = useAuth();
-  const router = useRouter();
-  useEffect(() => {
-    if (!authLoaded) return;
-    if (!isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated, authLoaded]);
-  if (!authLoaded) return null;
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
-        <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 12 }}>Mon compte</Text>
-        <Text style={{ fontSize: 16, marginBottom: 16 }}>Connecté en tant que <Text style={{ fontWeight: 'bold' }}>{user}</Text></Text>
-        <TouchableOpacity onPress={async () => { await logout(); router.replace("/login"); }} style={{ backgroundColor: '#e11d48', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 }}>
-          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Déconnexion</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

@@ -1,5 +1,6 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { API_URL } from '@/utils/api';
 import {
   Alert,
   Dimensions,
@@ -47,7 +48,6 @@ export default function ReaderScreen() {
     setProgress("Chargement depuis le backend...");
 
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
       const { data } = await fetch(`${API_URL}/api/manga/scan?code=${encodeURIComponent(code)}`)
         .then(res => res.json());
       if (data && data.images && data.images.length > 0) {

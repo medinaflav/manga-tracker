@@ -2,10 +2,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, SafeAreaView, StatusBar } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
-import axios from "axios";
+import { api } from '@/utils/api';
+import { getMangaDetailsById } from '@/utils/mangadex';
+import { getLastChapter } from '@/utils/comick';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export const options = { headerShown: false };
 
@@ -23,7 +24,7 @@ export default function MangaDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
-    axios.get(`${API_URL}/api/watchlist`)
+    api.get('/api/watchlist')
       .then(({ data }) => {
         if (Array.isArray(data)) {
           const found = data.find((m: any) => m.mangaId === id || m.id === id);
@@ -40,22 +41,8 @@ export default function MangaDetailScreen() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    axios.get(`https://api.mangadex.org/manga/${id}`, { params: { includes: ["cover_art", "author"] } })
-      .then(async ({ data }) => {
-        const mangaData = data.data;
-        const coverRel = mangaData?.relationships?.find((r: any) => r.type === "cover_art");
-        let coverUrl = null;
-        if (coverRel?.attributes?.fileName) {
-          coverUrl = `https://uploads.mangadex.org/covers/${id}/${coverRel.attributes.fileName}.256.jpg`;
-        }
-        setManga({
-          ...mangaData,
-          title: mangaData.attributes?.title?.en || Object.values(mangaData.attributes?.title || {})[0] || "Sans titre",
-          description: mangaData.attributes?.description?.fr || mangaData.attributes?.description?.en || "",
-          coverUrl,
-          author: mangaData.relationships?.find((r: any) => r.type === "author")?.attributes?.name || "Auteur inconnu",
-        });
-      })
+    getMangaDetailsById(id as string)
+      .then((info) => setManga(info))
       .catch(() => setManga(null))
       .finally(() => setLoading(false));
   }, [id]);
@@ -64,14 +51,8 @@ export default function MangaDetailScreen() {
   useEffect(() => {
     if (!manga?.title) return;
     (async () => {
-      try {
-        const res = await axios.get('https://api.comick.io/v1.0/search', {
-          params: { q: manga.title, limit: 1 }
-        });
-        setLastChapterComick(res.data?.[0]?.last_chapter || null);
-      } catch {
-        setLastChapterComick(null);
-      }
+      const last = await getLastChapter(manga.title);
+      setLastChapterComick(last);
     })();
   }, [manga?.title]);
 
@@ -148,10 +129,10 @@ export default function MangaDetailScreen() {
               onPress={async () => {
                 try {
                   if (!isFollowed) {
-                    await axios.post(`${API_URL}/api/watchlist`, { mangaId: id, title: manga?.title, lastRead });
+                    await api.post('/api/watchlist', { mangaId: id, title: manga?.title, lastRead });
                     setIsFollowed(true);
                   } else {
-                    await axios.delete(`${API_URL}/api/watchlist`, { data: { mangaId: id } });
+                    await api.delete('/api/watchlist', { data: { mangaId: id } });
                     setIsFollowed(false);
                   }
                 } catch {}
@@ -186,7 +167,7 @@ export default function MangaDetailScreen() {
               onPress={async () => {
                 if (selectedChapter) {
                   try {
-                    await axios.post(`${API_URL}/api/watchlist/lastread`, { mangaId: id, lastRead: selectedChapter });
+                    await api.post('/api/watchlist/lastread', { mangaId: id, lastRead: selectedChapter });
                     setLastRead(selectedChapter);
                   } catch {}
                 }

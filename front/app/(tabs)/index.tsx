@@ -1,7 +1,7 @@
-import axios from "axios";
+import { api } from '@/utils/api';
+import { searchMangaByTitle } from '@/utils/mangadex';
 import { useEffect, useState } from "react";
 import {
-  Button,
   FlatList,
   Image,
   StyleSheet,
@@ -11,12 +11,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 const POPULAR_TITLES = [
   "One Piece",
@@ -27,50 +25,6 @@ const POPULAR_TITLES = [
   "Spy x Family",
 ];
 
-async function fetchMangaDexInfo(title: string) {
-  try {
-    const res = await axios.get(
-      `https://api.mangadex.org/manga`,
-      {
-        params: {
-          title,
-          limit: 10, // Augmente le nombre de résultats pour pouvoir filtrer
-          includes: ["cover_art"],
-        },
-      }
-    );
-    const mangas = res.data.data;
-    if (!mangas || mangas.length === 0) return null;
-
-    // Cherche un titre qui correspond exactement (insensible à la casse)
-    const exact = mangas.find((manga: any) => {
-      const enTitle = manga.attributes.title.en || Object.values(manga.attributes.title)[0];
-      return enTitle?.toLowerCase() === title.toLowerCase();
-    });
-
-    // Si pas d'exact, cherche un titre qui commence par le texte recherché
-    const startsWith = !exact && mangas.find((manga: any) => {
-      const enTitle = manga.attributes.title.en || Object.values(manga.attributes.title)[0];
-      return enTitle?.toLowerCase().startsWith(title.toLowerCase());
-    });
-
-    const manga = exact || startsWith || mangas[0];
-    // Get cover file name
-    const coverFileName = manga?.relationships?.find((r: any) => r.type === "cover_art")?.attributes?.fileName;
-    const coverUrl = coverFileName
-      ? `https://uploads.mangadex.org/covers/${manga.id}/${coverFileName}.256.jpg`
-      : null;
-    return {
-      id: manga.id,
-      title: manga.attributes.title.en || Object.values(manga.attributes.title)[0],
-      author: manga.attributes.author || "",
-      description: manga.attributes.description.en || "",
-      coverUrl,
-    };
-  } catch {
-    return null;
-  }
-}
 
 // Ajoute une fonction utilitaire pour extraire l'URL de couverture d'un manga Mangadex
 function getCoverUrlFromManga(manga: any): string | null {
@@ -103,7 +57,7 @@ export default function SearchScreen() {
   useEffect(() => {
     let cancelled = false;
     setLoadingPopular(true);
-    Promise.all(POPULAR_TITLES.map(fetchMangaDexInfo)).then((arr) => {
+    Promise.all(POPULAR_TITLES.map(searchMangaByTitle)).then((arr) => {
       if (!cancelled) {
         setPopular(arr.filter(Boolean));
         setLoadingPopular(false);
@@ -120,7 +74,7 @@ export default function SearchScreen() {
   useEffect(() => {
     if (!query) return;
     setLoading(true);
-    axios.get(`${API_URL}/api/manga/search`, { params: { q: query } })
+    api.get('/api/manga/search', { params: { q: query } })
       .then(({ data }) => {
         // Ajoute coverUrl à chaque résultat
         const mapped = (data.data || []).map((manga: any) => ({

@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View, SafeAreaView, StatusBar, TouchableOpacity, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, TextInput, View, SafeAreaView, StatusBar, TouchableOpacity, ActivityIndicator } from "react-native";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
@@ -9,7 +9,7 @@ export default function LoginScreen() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
-  const { login, register, isAuthenticated } = useAuth();
+  const { login, register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {

@@ -1,9 +1,6 @@
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 
-// Connexion MongoDB Atlas (URI dans .env)
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
 const watchlistSchema = new mongoose.Schema({
   username: { type: String, required: true, index: true },
   mangaId: { type: String, required: true },
@@ -56,20 +53,6 @@ async function updateLastChapterComick(username, mangaId, lastChapterComick) {
 
 async function getWatchlist(username) {
   return await Watchlist.find({ username });
-}
-
-function updateProgress(username, mangaId, chapterId, read) {
-  // This function is no longer used as progress is stored per manga in watchlists
-  // Keeping it for now as it might be re-introduced or refactored later
-  // For now, it will just return an empty object as progress is not tracked here
-  return {};
-}
-
-function getProgress(username, mangaId) {
-  // This function is no longer used as progress is stored per manga in watchlists
-  // Keeping it for now as it might be re-introduced or refactored later
-  // For now, it will just return an empty object as progress is not tracked here
-  return {};
 }
 
 module.exports = {

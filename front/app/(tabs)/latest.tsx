@@ -1,8 +1,7 @@
-import axios from "axios";
 import { useRouter } from "expo-router";
+import { api } from '@/utils/api';
 import { useEffect, useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Image,
   RefreshControl,
@@ -15,16 +14,11 @@ import {
 } from "react-native";
 import { scrapeMangaMoinsLatest } from '../../hooks/useMangaMoinsScraper';
 
-// URL du site à scraper
-const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-
 /**
  * Récupère l'URL de la couverture d'un manga depuis l'API MangaDex.
  * @param mangaTitle Le titre du manga à rechercher.
  * @returns L'URL de l'image ou null si non trouvée.
  */
-// SUPPRIMER la fonction getMangaCoverUrl du front
 
 export default function LatestScreen() {
   const router = useRouter();
@@ -45,7 +39,7 @@ export default function LatestScreen() {
     // 2. Pour chaque titre, récupérer l'image et mettre à jour l'état
     uniqueMangaTitles.forEach(async (title) => {
       try {
-        const response = await axios.get(`${API_URL}/api/manga/cover`, { params: { title } });
+        const response = await api.get('/api/manga/cover', { params: { title } });
         const imageUrl = response.data?.url;
         if (imageUrl) {
           setChapters((prevChapters) =>
@@ -54,15 +48,11 @@ export default function LatestScreen() {
             ),
           );
         }
-      } catch (error) {
+      } catch {
         // Optionnel : log ou fallback
       }
     });
   };
-
-  // Calculer la largeur dynamique des cartes
-  const screenWidth = Dimensions.get("window").width;
-  // SUPPRESSION de getCardWidth (non utilisé)
 
   // ⚠️ Si tu veux ajouter 'load' en dépendance, il faut le déclarer avec useCallback
   useEffect(() => {
@@ -71,14 +61,13 @@ export default function LatestScreen() {
 
   const scrapeBackend = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/mangamoins/latest`);
+      const { data } = await api.get('/api/mangamoins/latest');
       return data;
-    } catch (err) {
+    } catch {
       return [];
     }
   };
 
-  // SUPPRIMER parseMangaChapters, scrapeDirect, scrapeWithProxy
 
   const load = async () => {
     setLoading(true);
