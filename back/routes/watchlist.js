@@ -13,11 +13,16 @@ const axios = require('axios');
 // Add or update manga in watchlist
 router.post("/", auth, async (req, res) => {
   const username = req.user;
-  const { mangaId, title, lastRead } = req.body;
+  const { mangaId, title, lastRead, author, coverUrl, description } = req.body;
   if (!mangaId || !title)
     return res.status(400).json({ message: "mangaId and title required" });
-  await addToWatchlist(username, mangaId, title, lastRead);
-  res.json({ message: "Added or updated" });
+  try {
+    await addToWatchlist(username, mangaId, title, lastRead, author, coverUrl, description);
+    res.json({ message: "Added or updated" });
+  } catch (error) {
+    console.error('[WATCHLIST-ROUTE] Error adding to watchlist:', error);
+    res.status(500).json({ message: "Error adding to watchlist" });
+  }
 });
 
 // Remove manga from watchlist

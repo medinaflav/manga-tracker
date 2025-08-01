@@ -18,6 +18,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
+        tabBarShowLabel: true,
         tabBarStyle: Platform.select({
           ios: {
             position: "absolute",
@@ -44,14 +45,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="clock.fill" color={color} />
           ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="watchlist"
         options={{
-          title: "Mes mangas",
+          title: "Watchlist",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="favorite" color={color} />
+            <IconSymbol size={28} name="book" color={color} />
           ),
         }}
       />

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { api } from '@/utils/api';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Dimensions,
   FlatList,
@@ -15,6 +15,9 @@ import {
   StatusBar,
 } from "react-native";
 import { scrapeMangaMoinsLatest } from '../../hooks/useMangaMoinsScraper';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Badge } from '@/components/Badge';
 
 // URL du site à scraper
 const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
@@ -27,6 +30,8 @@ const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
 
 export default function LatestScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
   const [chapters, setChapters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,10 +68,17 @@ export default function LatestScreen() {
   const screenWidth = Dimensions.get("window").width;
   // Largeur dynamique des cartes
 
-  // ⚠️ Si tu veux ajouter 'load' en dépendance, il faut le déclarer avec useCallback
+  // Chargement initial
   useEffect(() => {
     load();
-  }, []); // Pas de dépendance pour éviter l'erreur de déclaration
+  }, []);
+
+  // Recharger quand l'écran redevient actif
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [])
+  );
 
   const scrapeBackend = async () => {
     try {
@@ -78,7 +90,7 @@ export default function LatestScreen() {
   };
 
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       let chapters = await scrapeBackend();
@@ -95,7 +107,7 @@ export default function LatestScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -118,64 +130,73 @@ export default function LatestScreen() {
     });
   };
 
-  const styles = getStyles();
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
-        <Text style={styles.header}>Dernières sorties</Text>
-        {/* <Text style={styles.subtitle}>Source: mangamoins.shaeishu.co</Text> */}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.headerContainer}>
+          <Text style={[styles.header, { color: colors.text }]}>Dernières sorties</Text>
+          <View style={[styles.headerBadge, { backgroundColor: colors.accent }]}>
+            <Text style={[styles.headerBadgeText, { color: colors.primary }]}>{chapters.length}</Text>
+          </View>
+        </View>
 
         {loading ? (
           <View style={styles.center}>
-            <Text>Chargement...</Text>
+            <View style={[styles.loadingIcon, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.loadingIconText, { color: colors.primary }]}>📚</Text>
+            </View>
+            <Text style={[styles.loadingText, { color: colors.muted }]}>Chargement...</Text>
           </View>
         ) : (
           <FlatList
             data={chapters}
             keyExtractor={(item) => item.id}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
             }
             renderItem={({ item }) => {
-              // console.log('Rendering item:', item);
               return (
                 <TouchableOpacity
-                  style={styles.item}
+                  style={[styles.item, { backgroundColor: colors.surface, shadowColor: colors.text }]}
                   activeOpacity={0.85}
                   onPress={() => openChapter(item)}
                 >
                   <View style={styles.row}>
-                    {/* Image de couverture (placeholder si vide) */}
-                    <View style={styles.coverContainer}>
+                    <View style={[styles.coverContainer, { backgroundColor: colors.border }]}>
                       {item.image ? (
                         <Image
                           source={{ uri: item.image }}
                           style={styles.coverImage}
                         />
                       ) : (
-                        <View style={styles.coverPlaceholder}>
-                          <Text style={styles.coverPlaceholderText}>IMG</Text>
+                        <View style={[styles.coverPlaceholder, { backgroundColor: colors.border }]}>
+                          <Text style={[styles.coverPlaceholderText, { color: colors.muted }]}>📚</Text>
                         </View>
                       )}
+                      <View style={[styles.coverOverlay, { backgroundColor: colors.primary + '20' }]} />
                     </View>
-                    {/* Infos */}
                     <View style={styles.infoContainer}>
                       <View style={styles.headerRow}>
-                        <Text style={styles.mangaTitle}>{item.manga}</Text>
-                        <View style={styles.dateBadge}>
-                          <Text style={styles.dateBadgeText}>{item.date}</Text>
+                        <Text style={[styles.mangaTitle, { color: colors.text }]}>{item.manga}</Text>
+                        <View style={[styles.dateBadge, { backgroundColor: colors.accent }]}>
+                          <Text style={[styles.dateBadgeText, { color: colors.primary }]}>{item.date}</Text>
                         </View>
                       </View>
-                      <Text style={styles.author}>{item.author}</Text>
+                      <Text style={[styles.author, { color: colors.muted }]}>{item.author}</Text>
                       <View style={styles.chapterInfoRow}>
-                        <Text style={styles.chapterNumber}>
-                          Chapitre {item.chapter}
-                        </Text>
-                        {/* <Text style={styles.language}>{item.language}</Text> */}
+                        <View style={[styles.chapterBadge, { backgroundColor: colors.primary }]}>
+                          <Text style={[styles.chapterNumber, { color: colors.background }]}>
+                            Chapitre {item.chapter}
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={styles.chapterTitle}>{item.subtitle}</Text>
+                      <Text style={[styles.chapterTitle, { color: colors.text }]}>{item.subtitle}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -183,8 +204,11 @@ export default function LatestScreen() {
             }}
             ListEmptyComponent={
               <View style={styles.center}>
-                <Text>Aucun chapitre trouvé</Text>
-                <Text style={styles.errorText}>Protection Cloudflare active</Text>
+                <View style={[styles.emptyIcon, { backgroundColor: colors.accent }]}>
+                  <Text style={[styles.emptyIconText, { color: colors.primary }]}>📚</Text>
+                </View>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>Aucun chapitre trouvé</Text>
+                <Text style={[styles.errorText, { color: colors.muted }]}>Protection Cloudflare active</Text>
               </View>
             }
           />
@@ -194,150 +218,181 @@ export default function LatestScreen() {
   );
 }
 
-const getStyles = () =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-      backgroundColor: "#f5f5f5",
-    },
-    header: {
-      fontSize: 24,
-      fontWeight: "bold",
-      marginBottom: 15,
-      textAlign: "left",
-    },
-    subtitle: {
-      fontSize: 12,
-      color: "#666",
-      textAlign: "left",
-      marginBottom: 16,
-      fontStyle: "italic",
-    },
-    item: {
-      backgroundColor: "white",
-      marginBottom: 16,
-      borderRadius: 14,
-      elevation: 3,
-      shadowColor: "#222",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
-      padding: 0,
-      overflow: "hidden",
-      // Effet tactile (transition supprimée car non supportée)
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 14,
-    },
-    coverContainer: {
-      width: 56,
-      height: 80,
-      borderRadius: 8,
-      backgroundColor: "#ececec",
-      marginRight: 16,
-      justifyContent: "center",
-      alignItems: "center",
-      overflow: "hidden",
-    },
-    coverImage: {
-      width: 56,
-      height: 80,
-      borderRadius: 8,
-      resizeMode: "cover",
-    },
-    coverPlaceholder: {
-      width: 56,
-      height: 80,
-      borderRadius: 8,
-      backgroundColor: "#e0e0e0",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    coverPlaceholderText: {
-      color: "#bbb",
-      fontSize: 12,
-      fontWeight: "bold",
-    },
-    infoContainer: {
-      flex: 1,
-      flexDirection: "column",
-      justifyContent: "center",
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 2,
-    },
-    mangaTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#222",
-      textTransform: "uppercase",
-      flexShrink: 1,
-    },
-    dateBadge: {
-      backgroundColor: "#f0f0f0",
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      marginLeft: 8,
-      alignSelf: "flex-start",
-    },
-    dateBadgeText: {
-      fontSize: 11,
-      color: "#888",
-      fontWeight: "bold",
-    },
-    author: {
-      fontSize: 12,
-      color: "#666",
-      marginBottom: 4,
-    },
-    chapterInfoRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 2,
-    },
-    chapterNumber: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: "#3b82f6", // Accent bleu
-      marginRight: 8,
-    },
-    language: {
-      fontSize: 11,
-      color: "#999",
-      fontWeight: "bold",
-      backgroundColor: "#f3f4f6",
-      borderRadius: 6,
-      paddingHorizontal: 6,
-      paddingVertical: 1,
-    },
-    chapterTitle: {
-      fontSize: 13,
-      color: "#444",
-      lineHeight: 16,
-      marginTop: 2,
-      fontStyle: "italic",
-    },
-    center: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    loadingText: {
-      fontSize: 12,
-      color: "#999",
-      marginTop: 8,
-    },
-    errorText: {
-      fontSize: 12,
-      color: "#999",
-      textAlign: "center",
-      marginTop: 8,
-    },
-  });
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  headerBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    minWidth: 32,
+    alignItems: 'center',
+  },
+  headerBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  item: {
+    marginBottom: 16,
+    borderRadius: 16,
+    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    padding: 0,
+    overflow: "hidden",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  coverContainer: {
+    width: 60,
+    height: 85,
+    borderRadius: 12,
+    marginRight: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    position: 'relative',
+  },
+  coverImage: {
+    width: 60,
+    height: 85,
+    borderRadius: 12,
+    resizeMode: "cover",
+  },
+  coverPlaceholder: {
+    width: 60,
+    height: 85,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  coverPlaceholderText: {
+    fontSize: 20,
+  },
+  coverOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 12,
+  },
+  infoContainer: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  mangaTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    flexShrink: 1,
+    letterSpacing: -0.3,
+  },
+  dateBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+    alignSelf: "flex-start",
+  },
+  dateBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  author: {
+    fontSize: 13,
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+  chapterInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  chapterBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginRight: 8,
+  },
+  chapterNumber: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  chapterTitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: "italic",
+    opacity: 0.8,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 64,
+  },
+  loadingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  loadingIconText: {
+    fontSize: 32,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  emptyIconText: {
+    fontSize: 32,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});

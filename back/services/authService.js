@@ -26,11 +26,11 @@ async function register(username, password) {
 async function login(username, password) {
   const user = await User.findOne({ username });
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new Error("User not found");
   }
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    throw new Error("Invalid credentials");
+    throw new Error("Invalid password");
   }
   const token = jwt.sign({ username }, process.env.JWT_SECRET || "secret", {
     expiresIn: "7d",
