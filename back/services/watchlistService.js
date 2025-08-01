@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const { findOrCreateManga, getMangaById } = require("./mangaService");
 
@@ -12,17 +11,6 @@ const watchlistSchema = new mongoose.Schema({
 watchlistSchema.index({ username: 1, mangaId: 1 }, { unique: true });
 const Watchlist = mongoose.model("Watchlist", watchlistSchema);
 
-function auth(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token" });
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    req.user = payload.username;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-}
 
 async function addToWatchlist(username, mangadexId, title, lastRead, author = null, coverUrl = null, description = null) {
   try {
@@ -134,7 +122,6 @@ async function getWatchlist(username) {
 }
 
 module.exports = {
-  auth,
   addToWatchlist,
   removeFromWatchlist,
   updateLastRead,

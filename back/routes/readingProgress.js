@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { saveProgress, getProgressForUser, deleteProgressForManga, deleteProgressForMangaByTitle, cleanupOrphanedProgress } = require('../services/readingProgressService');
-const { auth } = require('../services/watchlistService'); // Ajout
+const auth = require('../middleware/auth');
 
 // Enregistrer ou mettre à jour la progression
 router.post('/', auth, async (req, res) => {
