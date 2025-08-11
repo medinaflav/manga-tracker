@@ -2,8 +2,7 @@ import React from 'react';
 import { FlatList, Text, StyleSheet, View } from 'react-native';
 import { MangaItem } from './MangaItem';
 import { SkeletonItem } from './SkeletonItem';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface MangaGridProps {
   data: any[];
@@ -24,8 +23,7 @@ export function MangaGrid({
   numColumns,
   getSkeletonData
 }: MangaGridProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
 
   return (
     <FlatList

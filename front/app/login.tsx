@@ -46,7 +46,7 @@ export default function LoginScreen() {
         <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
         <View style={styles.container}>
           <View style={styles.headerContainer}>
-            <Logo size="large" />
+            {/* <Logo size="large" /> */}
             <Text style={[styles.subtitle, { color: colors.muted }]}>
               {isRegister ? "Rejoignez notre communauté" : "Connectez-vous à votre compte"}
             </Text>

@@ -5,8 +5,7 @@ import { FlatList, StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpa
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
 import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
@@ -53,8 +52,7 @@ export default function WatchlistScreen() {
   const { token, isAuthenticated } = useAuth();
   const router = useRouter();
   const ready = useAuthRedirect();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors, currentTheme } = useTheme();
   const [detailed, setDetailed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -316,11 +314,11 @@ export default function WatchlistScreen() {
   if (error && !loading) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-        <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+        <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
         <View style={styles.container}>
-          <View style={styles.headerContainer}>
+          {/* <View style={styles.headerContainer}>
             <Logo size="medium" />
-          </View>
+          </View> */}
           <View style={styles.errorContainer}>
             <Card variant="outlined" style={styles.errorCard}>
               <View style={[styles.errorIcon, { backgroundColor: colors.error + '20' }]}>
@@ -345,8 +343,8 @@ export default function WatchlistScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+          <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
         refreshControl={
@@ -362,7 +360,7 @@ export default function WatchlistScreen() {
         bounces={true}
       >
         <View style={styles.headerContainer}>
-          <Logo size="large" />
+          {/* <Logo size="large" /> */}
           {/* <Text style={[styles.subtitle, { color: colors.muted }]}>
             {Brand.tagline}
           </Text> */}

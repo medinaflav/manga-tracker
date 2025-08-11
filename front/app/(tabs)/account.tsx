@@ -1,22 +1,20 @@
 import { useRouter } from 'expo-router';
-import { SafeAreaView, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { SafeAreaView, StatusBar, Text, TouchableOpacity, View, StyleSheet, Switch } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AccountScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const ready = useAuthRedirect();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors, currentTheme, isManualMode, manualDarkMode, toggleManualMode, toggleDarkMode } = useTheme();
 
   if (!ready) return null;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={[styles.header, { color: colors.text }]}>Mon compte</Text>
@@ -32,6 +30,44 @@ export default function AccountScreen() {
           <View style={styles.profileInfo}>
             <Text style={[styles.username, { color: colors.text }]}>{user}</Text>
             <Text style={[styles.userStatus, { color: colors.muted }]}>Connecté</Text>
+          </View>
+        </View>
+
+        {/* Section Paramètres */}
+        <View style={styles.settingsContainer}>
+          <Text style={[styles.settingsTitle, { color: colors.text }]}>Paramètres</Text>
+          
+          {/* Mode Manuel */}
+          <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>Mode manuel</Text>
+              <Text style={[styles.settingDescription, { color: colors.muted }]}>
+                Choisir manuellement le mode clair/sombre
+              </Text>
+            </View>
+            <Switch
+              value={isManualMode}
+              onValueChange={toggleManualMode}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={isManualMode ? colors.background : colors.muted}
+            />
+          </View>
+
+          {/* Mode Sombre */}
+          <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>Mode sombre</Text>
+              <Text style={[styles.settingDescription, { color: colors.muted }]}>
+                {isManualMode ? 'Activer le mode sombre' : 'Suivre les préférences système'}
+              </Text>
+            </View>
+            <Switch
+              value={manualDarkMode}
+              onValueChange={toggleDarkMode}
+              disabled={!isManualMode}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={manualDarkMode ? colors.background : colors.muted}
+            />
           </View>
         </View>
 
@@ -134,5 +170,35 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  settingsContainer: {
+    marginBottom: 32,
+  },
+  settingsTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 20,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
   },
 });

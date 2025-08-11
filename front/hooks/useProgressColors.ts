@@ -1,53 +1,52 @@
-import { useMemo } from 'react';
-import { getProgressColors, getProgressWidth } from '@/utils/progressColors';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
-interface UseProgressColorsProps {
-  lastRead: number;
-  lastChapterComick: number;
-}
+export function useProgressColors() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
-interface ProgressData {
-  progressWidth: number;
-  progressColors: {
-    progressColor: string;
-    badgeColor: string;
-    textColor: string;
-  };
-  progressText: string;
-}
-
-export function useProgressColors({ lastRead, lastChapterComick }: UseProgressColorsProps): ProgressData {
-  return useMemo(() => {
-    if (!lastChapterComick || lastChapterComick === 0) {
+  const getProgressColors = (progressPercent: number, lastRead: number, totalChapters: number) => {
+    if (lastRead === 0) {
       return {
-        progressWidth: 0,
-        progressColors: {
-          progressColor: '#6b7280',
-          badgeColor: '#6b7280',
-          textColor: '#6b7280'
-        },
-        progressText: '0 / 0'
+        progressColor: colors.progressNotStarted,
+        badgeColor: colors.progressNotStarted,
+        textColor: colors.progressNotStarted,
       };
     }
 
-    const progressPercent = lastRead / lastChapterComick;
-    const progressColors = getProgressColors(progressPercent);
-    const progressWidth = getProgressWidth(progressPercent);
-    
-    let progressText = '';
-    if (lastRead === 0) {
-      progressText = `0 / ${lastChapterComick}`;
-    } else if (lastRead >= lastChapterComick) {
-      progressText = `À jour (${lastChapterComick})`;
-    } else {
-      const remaining = lastChapterComick - lastRead;
-      progressText = `${lastRead} / ${lastChapterComick} (-${remaining})`;
+    if (progressPercent >= 1.0) {
+      return {
+        progressColor: colors.progressCompleted,
+        badgeColor: colors.progressCompleted,
+        textColor: colors.progressCompleted,
+      };
+    }
+
+    if (progressPercent >= 0.7) {
+      return {
+        progressColor: colors.progressAlmostDone,
+        badgeColor: colors.progressAlmostDone,
+        textColor: colors.progressAlmostDone,
+      };
+    }
+
+    if (progressPercent >= 0.4) {
+      return {
+        progressColor: colors.progressInProgress,
+        badgeColor: colors.progressInProgress,
+        textColor: colors.progressInProgress,
+      };
     }
 
     return {
-      progressWidth,
-      progressColors,
-      progressText
+      progressColor: colors.progressNotStarted,
+      badgeColor: colors.progressNotStarted,
+      textColor: colors.progressNotStarted,
     };
-  }, [lastRead, lastChapterComick]);
+  };
+
+  return {
+    colors,
+    getProgressColors,
+  };
 } 

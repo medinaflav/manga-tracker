@@ -23,12 +23,12 @@ import { useFocusEffect } from 'expo-router';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { useAuth } from '@/contexts/AuthContext';
 import { MangaGrid } from '@/components/MangaGrid';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
 import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Brand } from '@/constants/Brand';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const POPULAR_TITLES = [
@@ -136,8 +136,7 @@ export const options = { headerShown: false };
 
 export default function SearchScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors, currentTheme } = useTheme();
   const ready = useAuthRedirect();
   const { token, isAuthenticated } = useAuth();
   const [query, setQuery] = useState("");
@@ -309,7 +308,7 @@ export default function SearchScreen() {
   console.log('[INDEX] Resume list:', resumeList);
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+              <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScrollView 
         style={[styles.container, { backgroundColor: colors.background }]} 
         contentContainerStyle={styles.scrollContent}
@@ -322,23 +321,23 @@ export default function SearchScreen() {
           />
         }
       >
-        <View style={styles.headerContainer}>
+        {/* <View style={styles.headerContainer}>
           <Logo size="large" />
-          {/* <Text style={[styles.subtitle, { color: colors.muted }]}>
+          <Text style={[styles.subtitle, { color: colors.muted }]}>
             {Brand.tagline}
-          </Text> */}
-        </View>
+          </Text>
+        </View> */}
         
-        <Card variant="elevated" style={{
+        <Card style={{
           marginHorizontal: 15,
           marginBottom: 22,
           backgroundColor: colors.surface,
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: 7,
+          // borderWidth: 1,
+          // borderColor: colors.border,
+          borderRadius: 50,
         }}>
           <View style={styles.searchRow}>
-            <Text style={[styles.searchIcon, { color: colors.muted }]}>🔍</Text>
+            <Ionicons name="search" size={24} style={[styles.searchIcon, { color: colors.muted }]} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder={Brand.placeholders.search}
@@ -518,7 +517,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   searchIcon: {
-    fontSize: 16,
     marginRight: 12,
   },
   input: {

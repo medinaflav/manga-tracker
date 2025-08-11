@@ -50,7 +50,9 @@ export default function MangaDetailScreen() {
         dropdown: {
             ...styles.dropdown,
             backgroundColor: colors.surface,
-            height: 48
+            height: 48,
+            borderColor: colors.border,
+            shadowColor: colors.shadow,
         },
         dropdownText: {
             ...styles.dropdownText,
@@ -59,13 +61,34 @@ export default function MangaDetailScreen() {
         },
         dropdownItemRow: (index: number, isSelected: boolean) => ({
             ...styles.dropdownItemRow,
-            backgroundColor: isSelected ? '#f0f9ff' : '#fff',
-            borderBottomWidth: index === chapterItems.length - 1 ? 0 : 1
+            backgroundColor: isSelected ? colors.dropdownSelected : colors.dropdownItem,
+            borderBottomWidth: index === chapterItems.length - 1 ? 0 : 1,
+            borderBottomColor: colors.border,
         }),
         dropdownItemLabel: (isSelected: boolean) => ({
             ...styles.dropdownItemLabel,
-            color: isSelected ? '#3b82f6' : '#222'
-        })
+            color: isSelected ? colors.dropdownSelectedText : colors.dropdownItemText
+        }),
+        dropdownItemDate: {
+            ...styles.dropdownItemDate,
+            color: colors.muted,
+        },
+        noChapter: {
+            ...styles.noChapter,
+            color: colors.placeholder,
+        },
+        dropdownLabel: {
+            ...styles.dropdownLabel,
+            color: colors.text,
+        },
+        placeholderStyle: {
+            ...styles.placeholderStyle,
+            color: colors.placeholder,
+        },
+        selectedTextStyle: {
+            ...styles.selectedTextStyle,
+            color: colors.text,
+        },
     }), [colors, selectedChapter, lastRead, chapterItems.length]);
 
     // Mémoriser le texte du dropdown
@@ -169,6 +192,7 @@ export default function MangaDetailScreen() {
     useEffect(() => {
         if (!id) return;
         setLoading(true);
+        console.log('manga id ', id);
         axios.get(`https://api.mangadex.org/manga/${id}`, { params: { includes: ["cover_art", "author"] } })
             .then(({ data }) => {
                 const mangaData = data.data;
@@ -305,8 +329,8 @@ export default function MangaDetailScreen() {
 
     
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+        <View style={[styles.container]}>
+            <StatusBar barStyle={'light-content'} backgroundColor={colors.background} translucent={true} />
 
             {/* Header avec couverture et boutons */}
             <View style={styles.coverWrapper}>
@@ -385,24 +409,24 @@ export default function MangaDetailScreen() {
                                             if (last === 0) {
                                                 // Pas commencé : barre vide
                                                 progress = 0;
-                                                progressColor = '#ef4444'; // Rouge
+                                                progressColor = colors.progressNotStarted;
                                             } else if (progressPercent >= 1.0) {
                                                 // À jour : barre pleine
                                                 progress = 1.0;
-                                                progressColor = '#22c55e'; // Vert clair
+                                                progressColor = colors.progressCompleted;
                                             } else if (progressPercent >= 0.7) {
                                                 // 70% et plus : vert (proche de la fin)
                                                 progress = Math.max(0.6, progressPercent * 0.9);
-                                                progressColor = '#22c55e'; // Vert clair
+                                                progressColor = colors.progressAlmostDone;
                                             } else if (progressPercent >= 0.4) {
                                                 // 40-70% : orange (milieu)
                                                 progress = Math.max(0.3, progressPercent * 0.8);
-                                                progressColor = '#fb923c'; // Orange clair
+                                                progressColor = colors.progressInProgress;
                                             } else {
                                                 // Moins de 40% : rouge (début)
                                                 const rawProgress = last / total;
                                                 progress = Math.max(0.1, rawProgress);
-                                                progressColor = '#ef4444'; // Rouge
+                                                progressColor = colors.progressNotStarted;
                                             }
                                             
                                             return (
@@ -430,13 +454,13 @@ export default function MangaDetailScreen() {
                                     
                                     let badgeColor = colors.primary;
                                     if (progressPercent >= 1.0) {
-                                        badgeColor = '#22c55e'; // Vert quand à jour
+                                        badgeColor = colors.progressCompleted;
                                     } else if (progressPercent >= 0.7) {
-                                        badgeColor = '#22c55e'; // Vert comme la barre
+                                        badgeColor = colors.progressAlmostDone;
                                     } else if (progressPercent >= 0.4) {
-                                        badgeColor = '#fb923c'; // Orange clair comme la barre
+                                        badgeColor = colors.progressInProgress;
                                     } else {
-                                        badgeColor = '#ef4444'; // Rouge comme la barre
+                                        badgeColor = colors.progressNotStarted;
                                     }
                                     
                                     return {
@@ -620,7 +644,7 @@ export default function MangaDetailScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.iconButton, { 
-                                    backgroundColor: selectedChapter && selectedChapter !== lastRead ? "#22c55e" : colors.border 
+                                    backgroundColor: selectedChapter && selectedChapter !== lastRead ? colors.progressCompleted : colors.border 
                                 }]}
                                 disabled={!selectedChapter || selectedChapter === lastRead}
                                 onPress={async () => {
@@ -647,13 +671,13 @@ export default function MangaDetailScreen() {
                     </View>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flex: 1,        
     },
     center: {
         flex: 1,
@@ -662,14 +686,16 @@ const styles = StyleSheet.create({
     },
     coverWrapper: {
         width: '100%',
-        height: '45%',
+        height: '30%',
         position: 'relative',
         overflow: 'hidden',
+        
     },
     coverImage: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
+        
     },
     coverPlaceholder: {
         width: '100%',
@@ -683,7 +709,7 @@ const styles = StyleSheet.create({
     },
     headerButtons: {
         position: 'absolute',
-        top: 20,
+        top: 50,
         left: 18,
         right: 18,
         flexDirection: 'row',
@@ -701,7 +727,6 @@ const styles = StyleSheet.create({
     },
     detailCard: {
         flex: 1,
-        backgroundColor: '#fff',
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         overflow: 'hidden',
@@ -717,6 +742,7 @@ const styles = StyleSheet.create({
         height: '55%',
         padding: 22,
         paddingBottom: 40,
+
     },
     title: {
         fontSize: 28,
@@ -967,6 +993,7 @@ const styles = StyleSheet.create({
     },
     mangaInfoCard: {
         paddingVertical: 10,
+        backgroundColor: 'transparent',
     },
     chapterCard: {
         marginBottom: 20,
@@ -1016,6 +1043,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal: 20,
+        zIndex: 1000,
     },
     noResultsContainer: {
         paddingVertical: 20,

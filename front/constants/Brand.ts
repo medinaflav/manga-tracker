@@ -49,7 +49,7 @@ export const Brand = {
   
   // Placeholders
   placeholders: {
-    search: 'Rechercher un manga...',
+    search: 'Rechercher un manga',
     username: 'Entrez votre nom d\'utilisateur',
     password: 'Entrez votre mot de passe',
   },

@@ -17,6 +17,8 @@ import {
   StatusBar,
   Linking,
 } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,6 +27,8 @@ export default function ReaderScreen() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const { token } = useAuth();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -241,8 +245,8 @@ export default function ReaderScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor="#222" />
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Téléchargement du scan...</Text>
           <Text style={styles.scanInfo}>{`${mangaTitle} - Chapitre ${chapter}`}</Text>
@@ -254,8 +258,8 @@ export default function ReaderScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor="#222" />
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => loadScan(slug as string)}>
@@ -272,8 +276,8 @@ export default function ReaderScreen() {
 
   if (webviewUrl) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#222' }}>
-        <StatusBar barStyle="light-content" backgroundColor="#222" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
         <View style={{ flex: 1 }}>
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={() => setWebviewUrl(null)}>
@@ -284,7 +288,7 @@ export default function ReaderScreen() {
           {Platform.OS === 'web' ? (
             <iframe
               src={webviewUrl}
-              style={{ flex: 1, width: '100%', height: '100%', border: 'none', background: '#222' }}
+              style={{ flex: 1, width: '100%', height: '100%', border: 'none', background: colors.background }}
               title="Lecture Sushiscan"
             />
           ) : (
@@ -305,16 +309,96 @@ export default function ReaderScreen() {
       ? `${API_URL}${pages[currentPage]}`
       : pages[currentPage];
   }
+
+  // Styles dynamiques basés sur les couleurs
+  const dynamicStyles = {
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "space-between" as const,
+      padding: 16,
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      paddingTop: 50, // Pour la barre de statut
+    },
+    backButtonText: {
+      color: "#fff",
+      fontSize: 16,
+    },
+    title: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold" as const,
+      flex: 1,
+      textAlign: "center" as const,
+    },
+    pageInfo: {
+      color: "#fff",
+      fontSize: 14,
+    },
+    navigation: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "space-between" as const,
+      padding: 16,
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+    },
+    navButton: {
+      padding: 12,
+      backgroundColor: "#333",
+      borderRadius: 8,
+      minWidth: 80,
+      alignItems: "center" as const,
+    },
+    navButtonDisabled: {
+      backgroundColor: "#666",
+    },
+    navButtonText: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "bold" as const,
+    },
+    pageDot: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: "#333",
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+      marginHorizontal: 4,
+    },
+    pageDotActive: {
+      backgroundColor: "#fff",
+    },
+    pageDotText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "bold" as const,
+    },
+    pageDotTextActive: {
+      color: "#000",
+      fontSize: 12,
+      fontWeight: "bold" as const,
+    },
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#222" />
-      <View style={styles.container}>
-        <View style={styles.header}>
+    <SafeAreaView style={dynamicStyles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={dynamicStyles.container}>
+        <View style={dynamicStyles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-            <Text style={styles.backButtonText}>← Retour</Text>
+            <Text style={dynamicStyles.backButtonText}>← Retour</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>{`${mangaTitle} - Chapitre ${chapter}`}</Text>
-          <Text style={styles.pageInfo}>{`${currentPage + 1} / ${pages.length}`}</Text>
+          <Text style={dynamicStyles.title}>{`${mangaTitle} - Chapitre ${chapter}`}</Text>
+          <Text style={dynamicStyles.pageInfo}>{`${currentPage + 1} / ${pages.length}`}</Text>
         </View>
         <View style={styles.readerContainer}>
           <ScrollView
@@ -344,23 +428,23 @@ export default function ReaderScreen() {
             ))}
           </ScrollView>
         </View>
-        <View style={styles.navigation}>
+        <View style={dynamicStyles.navigation}>
           <TouchableOpacity
-            style={[styles.navButton, currentPage === 0 && styles.navButtonDisabled]}
+            style={[dynamicStyles.navButton, currentPage === 0 && dynamicStyles.navButtonDisabled]}
             onPress={goToPreviousPage}
             disabled={currentPage === 0}
           >
-            <Text style={styles.navButtonText}>Précédent</Text>
+            <Text style={dynamicStyles.navButtonText}>Précédent</Text>
           </TouchableOpacity>
           <View style={styles.pageSelector}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {pages.map((_, idx) => (
                 <TouchableOpacity
                   key={idx}
-                  style={[styles.pageDot, currentPage === idx && styles.pageDotActive]}
+                  style={[dynamicStyles.pageDot, currentPage === idx && dynamicStyles.pageDotActive]}
                   onPress={() => goToPage(idx)}
                 >
-                  <Text style={[styles.pageDotText, currentPage === idx && styles.pageDotTextActive]}>
+                  <Text style={[dynamicStyles.pageDotText, currentPage === idx && dynamicStyles.pageDotTextActive]}>
                     {idx + 1}
                   </Text>
                 </TouchableOpacity>
@@ -368,11 +452,11 @@ export default function ReaderScreen() {
             </ScrollView>
           </View>
           <TouchableOpacity
-            style={[styles.navButton, currentPage === pages.length - 1 && styles.navButtonDisabled]}
+            style={[dynamicStyles.navButton, currentPage === pages.length - 1 && dynamicStyles.navButtonDisabled]}
             onPress={goToNextPage}
             disabled={currentPage === pages.length - 1}
           >
-            <Text style={styles.navButtonText}>Suivant</Text>
+            <Text style={dynamicStyles.navButtonText}>Suivant</Text>
           </TouchableOpacity>
         </View>
       </View>

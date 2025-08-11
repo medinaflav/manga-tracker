@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity, View, Text, Image, StyleSheet, Animated } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface MangaItemProps {
   item: {
@@ -18,8 +17,7 @@ interface MangaItemProps {
 }
 
 export function MangaItem({ item, onPress, showChapter = false, index = 0 }: MangaItemProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
   
   // Animations
   const scaleAnim = useRef(new Animated.Value(0.8)).current;

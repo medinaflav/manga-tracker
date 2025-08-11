@@ -1,23 +1,16 @@
-import axios from "axios";
-import { useRouter, useFocusEffect } from "expo-router";
+import axios from 'axios';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/utils/api';
-import { useEffect, useState, useCallback } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  SafeAreaView,
-  StatusBar,
-} from "react-native";
-import { scrapeMangaMoinsLatest } from '../../hooks/useMangaMoinsScraper';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { FlatList, StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, Image, RefreshControl, ScrollView, Animated, Dimensions } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { MangaGrid } from '@/components/MangaGrid';
+import { Logo } from '@/components/Logo';
 import { Badge } from '@/components/Badge';
+import { Card } from '@/components/Card';
+import { useTheme } from '@/contexts/ThemeContext';
+import { scrapeMangaMoinsLatest } from '../../hooks/useMangaMoinsScraper';
 
 // URL du site à scraper
 const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
@@ -30,8 +23,7 @@ const MANGA_SITE_URL = "https://mangamoins.shaeishu.co/";
 
 export default function LatestScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors, currentTheme } = useTheme();
   const [chapters, setChapters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,7 +124,7 @@ export default function LatestScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+              <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerContainer}>
           <Text style={[styles.header, { color: colors.text }]}>Dernières sorties</Text>

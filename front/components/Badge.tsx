@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -18,8 +17,7 @@ export function Badge({
   rounded = false,
   animated = true
 }: BadgeProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
   
   // Animations
   const scaleAnim = useRef(new Animated.Value(0)).current;
