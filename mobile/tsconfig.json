@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "jsx": "react-native",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": "./src"
+  },
+  "include": ["src"]
+}

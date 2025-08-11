@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "MangaTracker",
+    "slug": "manga-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android"],
+    "sdkVersion": "50.0.0",
+    "privacy": "public"
+  }
+}

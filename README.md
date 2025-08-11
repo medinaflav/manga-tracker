@@ -1,70 +1,68 @@
 # Manga Tracker
 
-Manga Tracker est une application mobile réalisée avec **React Native** (Expo) et un backend **Node.js/Express**. Elle a pour objectif de faciliter le suivi et la lecture de mangas.
+Manga Tracker est une application de suivi de mangas composée de deux projets :
 
-## Fonctionnalités clés
+- **mobile/** : application React Native (Expo) permettant la recherche, la
+  consultation et la gestion de la watchlist.
+- **backend/** : API Node.js/Express avec MongoDB pour l'authentification, la
+  watchlist, la progression de lecture et les notifications Telegram.
 
-- 🔍 **Recherche de mangas** via l'API **Mangadex**
-- ✅ **Suivi de lecture** : marquer les chapitres comme lus ou non lus
-- 📚 **Liste de suivi** pour retrouver facilement ses séries favorites
-- 📖 **Lecture intégrée** des chapitres dans l'application
-- 🔐 **Authentification** sécurisée (inscription et connexion)
+L'application utilise uniquement des sources publiques :
+[MangaDex](https://api.mangadex.org) pour les chapitres et les métadonnées,
+[AniList](https://anilist.co/graphiql) pour enrichir les fiches, et le bot
+Telegram officiel pour les notifications.
 
-## Démarrage rapide
+## Prérequis
 
-### Prérequis
+- Node.js 20+
+- MongoDB Atlas ou instance MongoDB locale
+- Compte BotFather (Telegram) pour créer un bot
+- Expo CLI (`npm install -g expo`)
 
-- [Node.js](https://nodejs.org/) installé sur votre machine
-
-### Backend
+## Installation rapide
 
 ```bash
-cd back
+# Backend
+cd backend
 npm install
 npm run dev
-```
 
-Le serveur démarre par défaut sur le port `5000`.
-
-### Frontend
-
-```bash
-cd front
+# Mobile
+cd ../mobile
 npm install
 npx expo start
 ```
 
-Expo vous proposera ensuite d'ouvrir l'application sur un appareil ou un émulateur.
+## Variables d'environnement
 
-> **Astuce** : si vous testez l'application sur un appareil physique, pensez à
-> définir la variable d'environnement `EXPO_PUBLIC_API_URL` afin que le front-end
-> puisse contacter votre serveur local. Par exemple :
->
-> ```bash
-> EXPO_PUBLIC_API_URL="http://192.168.1.10:3000" npx expo start
-> ```
->
-> Remplacez l'adresse IP par celle de votre machine hébergeant le backend.
+Créez un fichier `.env` dans `backend/` contenant :
 
-## Structure du dépôt
+```bash
+NODE_ENV=development
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/mangatracker
+JWT_SECRET=change-me
+TELEGRAM_BOT_TOKEN=<token BotFather>
+BOT_NAME=MonMangaBot
+CRON_SCHEDULE=*/20 * * * *
+```
 
-- `back/` – Serveur Express
-- `front/` – Application React Native / Expo
+Pour l'application mobile, définissez `EXPO_PUBLIC_API_URL` afin que le client
+sache joindre l'API.
 
-Ce dépôt sert de base de travail pour l'application **Manga Tracker**.
+## Tests
 
-### Variables d'environnement
+```bash
+cd backend
+npm test
+```
 
-Le backend utilise la variable `JWT_SECRET` pour signer les tokens. Vous pouvez la définir dans un fichier `.env` à la racine du dossier `back`.
+## Conformité
 
-## Endpoints principaux
+- Aucun contenu piraté n'est servi ni stocké.
+- Toutes les données peuvent être supprimées via `DELETE /me`.
+- Une politique de confidentialité est disponible à `GET /legal/privacy`.
 
-- `POST /api/auth/register` – inscription d'un utilisateur
-- `POST /api/auth/login` – connexion et récupération d'un token JWT
-- `GET /api/manga/search?q=titre` – rechercher des mangas via Mangadex
-- `GET /api/manga/chapter/:id` – récupérer les pages d'un chapitre
-- `GET /api/manga/latest` – dernières sorties depuis Mangadex
-- `POST /api/watchlist` – ajouter un manga à sa liste (token requis)
-- `GET /api/watchlist` – lister les mangas suivis
-- `POST /api/watchlist/progress` – marquer un chapitre comme lu
-- `GET /api/watchlist/progress/:mangaId` – obtenir la progression
+## Licence
+
+Projet fourni à titre d'exemple pédagogique.
